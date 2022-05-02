@@ -1,6 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Emiyaのdiary</title>
+    <url>/2022/05/02/Emiya%E3%81%AEdiary/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<h3 id="20220502"><a href="#20220502" class="headerlink" title="20220502"></a>20220502</h3><ol>
+<li>学习利用Hexo和github搭建博客，目前博客基本搭建完成</li>
+</ol>
+]]></content>
+      <categories>
+        <category>学习日记</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>个人博客搭建记录[2]</title>
+    <url>/2022/05/02/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95-2/</url>
+    <content><![CDATA[<span id="more"></span>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">OS Platform: macOS</span><br><span class="line">OS Version: 10.15</span><br></pre></td></tr></table></figure>
+
+<h3 id="个性化配置"><a href="#个性化配置" class="headerlink" title="个性化配置"></a>个性化配置</h3><p><strong>更换主题</strong><br>主题是博客页面的展示方式，不喜欢当前主题可以进行更换</p>
+<p>hexo 主题页面：<a href="https://hexo.io/themes/">https://hexo.io/themes/</a><br>本文采用 <a href="https://github.com/theme-next/hexo-theme-next">Next</a> 主题</p>
+<p>下载 thems 到博客文件夹</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/theme-next/hexo-theme-next themes/next</span><br></pre></td></tr></table></figure>
+
+<p>修改站点的配置文件</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Extensions</span></span><br><span class="line"><span class="comment">## Plugins: https://hexo.io/plugins/</span></span><br><span class="line"><span class="comment">## Themes: https://hexo.io/themes/</span></span><br><span class="line"><span class="attr">theme:</span> <span class="string">next</span></span><br></pre></td></tr></table></figure>
+<p>打开主题的配置文件进行 Scheme Settings</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ---------------------------------------------------------------</span></span><br><span class="line"><span class="comment"># Scheme Settings</span></span><br><span class="line"><span class="comment"># ---------------------------------------------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Schemes</span></span><br><span class="line"><span class="comment"># scheme: Muse</span></span><br><span class="line"><span class="comment"># scheme: Mist</span></span><br><span class="line"><span class="comment"># scheme: Pisces</span></span><br><span class="line"><span class="attr">scheme:</span> <span class="string">Gemini</span></span><br></pre></td></tr></table></figure>
+<p>重新编译并部署即可</p>
+<p><strong>修改目录</strong></p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ---------------------------------------------------------------</span></span><br><span class="line"><span class="comment"># Menu Settings</span></span><br><span class="line"><span class="comment"># ---------------------------------------------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="attr">menu:</span></span><br><span class="line">  <span class="attr">home:</span> <span class="string">/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-home</span></span><br><span class="line">  <span class="attr">about:</span> <span class="string">/about/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-user</span></span><br><span class="line">  <span class="attr">tags:</span> <span class="string">/tags/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-tags</span></span><br><span class="line">  <span class="attr">categories:</span> <span class="string">/categories/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-th</span></span><br><span class="line">  <span class="attr">archives:</span> <span class="string">/archives/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-archive</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>更换头像</strong><br>选择自己喜欢的图片加进去即可</p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Sidebar Avatar</span></span><br><span class="line"><span class="attr">avatar:</span></span><br><span class="line">  <span class="comment"># Replace the default image and set the url here.</span></span><br><span class="line">  <span class="attr">url:</span> <span class="string">/images/avatar.jpeg</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>添加社交网络</strong></p>
+<figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">social:</span></span><br><span class="line">  <span class="attr">GitHub:</span> <span class="string">https://github.com/darenfy</span> <span class="string">||</span> <span class="string">fab</span> <span class="string">fa-github</span></span><br><span class="line">  <span class="attr">E-Mail:</span> <span class="string">mailto:darenfy@gmail.com</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-envelope</span></span><br></pre></td></tr></table></figure>
+<p><strong>增加阅读全文功能</strong></p>
+<p><strong>开启文章目录</strong></p>
+<h3 id="Hexo-使用"><a href="#Hexo-使用" class="headerlink" title="Hexo 使用"></a>Hexo 使用</h3><h4 id="如何写文章"><a href="#如何写文章" class="headerlink" title="如何写文章"></a>如何写文章</h4><p>命令行输入</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo n <span class="string">&#x27;blog name&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>就能看到在 <code>source</code> 文件夹下新建了 <code>blog name.md</code> 文件，</p>
+<h4 id="搭建图床"><a href="#搭建图床" class="headerlink" title="搭建图床"></a>搭建图床</h4><p>使用 picGo 在 github 上构建免费图床，具体设置请参考 <a href="https://picgo.github.io/PicGo-Doc/zh/guide/">https://picgo.github.io/PicGo-Doc/zh/guide/</a></p>
+<h3 id="Hexo-备份"><a href="#Hexo-备份" class="headerlink" title="Hexo 备份"></a>Hexo 备份</h3><p><a href="http://www.xiaoliblog.cn/page/hexobackup.html#%E5%AE%89%E8%A3%85%E6%8F%92%E4%BB%B6">hexo-git-backup 博客备份及恢复</a><br><a href="https://github.com/coneycode/hexo-git-backup">git-backup</a></p>
+<h4 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h4><ol>
+<li>在进行个性化配置的过程中，如果想要实时查看配置效果，直接采用本地 <code>hexo s</code></li>
+</ol>
+<h4 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h4><p><a href="https://www.mdnice.com/writing/382af676baff4ed4ad5511074fb736da">https://www.mdnice.com/writing/382af676baff4ed4ad5511074fb736da</a></p>
+<p><a href="https://blog.51cto.com/u_12877374/2853898">Hexo博客NexT主题开启文章目录和调整样式</a></p>
+<p><a href="http://theme-next.iissnan.com/theme-settings.html">主题配置</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/460818216">hexo博客新增RSS功能支持</a></p>
+<p><a href="https://tding.top/archives/42c38b10.html">Hexo-NexT (v7.0+) 主题配置</a></p>
+]]></content>
+      <categories>
+        <category>小技巧</category>
+      </categories>
+      <tags>
+        <tag>blog搭建</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>个人博客搭建记录[1]</title>
     <url>/2022/05/02/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95-1/</url>
     <content><![CDATA[<span id="more"></span>

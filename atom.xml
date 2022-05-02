@@ -6,7 +6,7 @@
   <link href="https://darenfy.github.io/atom.xml" rel="self"/>
   
   <link href="https://darenfy.github.io/"/>
-  <updated>2022-05-02T09:05:10.838Z</updated>
+  <updated>2022-05-02T13:19:00.000Z</updated>
   <id>https://darenfy.github.io/</id>
   
   <author>
@@ -17,11 +17,47 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Emiyaのdiary</title>
+    <link href="https://darenfy.github.io/2022/05/02/Emiya%E3%81%AEdiary/"/>
+    <id>https://darenfy.github.io/2022/05/02/Emiya%E3%81%AEdiary/</id>
+    <published>2022-05-02T13:14:21.000Z</published>
+    <updated>2022-05-02T13:19:00.000Z</updated>
+    
+    
+    <summary type="html">记录学习的日常</summary>
+    
+    
+    
+    <category term="学习日记" scheme="https://darenfy.github.io/categories/%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>个人博客搭建记录[2]</title>
+    <link href="https://darenfy.github.io/2022/05/02/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95-2/"/>
+    <id>https://darenfy.github.io/2022/05/02/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95-2/</id>
+    <published>2022-05-02T13:06:18.000Z</published>
+    <updated>2022-05-02T13:59:00.000Z</updated>
+    
+    
+    <summary type="html">This is the second blog to record how to set up personal blog with hexo</summary>
+    
+    
+    
+    <category term="小技巧" scheme="https://darenfy.github.io/categories/%E5%B0%8F%E6%8A%80%E5%B7%A7/"/>
+    
+    
+    <category term="blog搭建" scheme="https://darenfy.github.io/tags/blog%E6%90%AD%E5%BB%BA/"/>
+    
+  </entry>
+  
+  <entry>
     <title>个人博客搭建记录[1]</title>
     <link href="https://darenfy.github.io/2022/05/02/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95-1/"/>
     <id>https://darenfy.github.io/2022/05/02/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95-1/</id>
     <published>2022-05-02T04:53:07.000Z</published>
-    <updated>2022-05-02T09:05:10.838Z</updated>
+    <updated>2022-05-02T11:32:00.000Z</updated>
     
     
     <summary type="html">This is the first blog to record how to set up personal blog with hexo</summary>
