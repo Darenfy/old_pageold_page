@@ -27,13 +27,13 @@
 <meta property="og:site_name" content="Emiyaのblog">
 <meta property="og:description" content="12345OS Type: macOSOS Version: 10.15git 2.30.0node v16.11.0npm 8.0.0  安装环境安装 hexo 123456789101112131415161718192021npm install -g hexo-cli$ hexo --versionhexo-cli: 4.3.0os: darwin 19.6.0 10.15.7node:">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://darenfy.github.io/source/resources/fix%20dns%20record.png">
-<meta property="og:image" content="https://darenfy.github.io/source/resources/blog%20hexo.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205021542680.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205021540840.png">
 <meta property="article:published_time" content="2022-05-02T04:53:07.000Z">
-<meta property="article:modified_time" content="2022-05-02T04:59:08.914Z">
+<meta property="article:modified_time" content="2022-05-02T07:42:56.033Z">
 <meta property="article:author" content="emiya">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://darenfy.github.io/source/resources/fix%20dns%20record.png">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205021542680.png">
 
 <link rel="canonical" href="https://darenfy.github.io/2022/05/02/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95-1/">
 
@@ -177,7 +177,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2022-05-02 12:53:07 / Modified: 12:59:08" itemprop="dateCreated datePublished" datetime="2022-05-02T12:53:07+08:00">2022-05-02</time>
+              <time title="Created: 2022-05-02 12:53:07 / Modified: 15:42:56" itemprop="dateCreated datePublished" datetime="2022-05-02T12:53:07+08:00">2022-05-02</time>
             </span>
 
           
@@ -213,7 +213,7 @@
 
 <p><strong>绑定域名</strong><br>绑定域名需要三步</p>
 <ol>
-<li><p>在域名服务商修改解析记录集<br>我使用的华为云，设置 A 和 CNAME 记录如下图<br><img src="/source/resources/fix%20dns%20record.png"><br>A 记录可以通过站长工具进行查询 <name>.github.io 的 ip 地址<br>注意：不能对同一个域名同时设置 A 记录和 CNAME 记录，会造成冲突</p>
+<li><p>在域名服务商修改解析记录集<br>我使用的华为云，设置 A 和 CNAME 记录如下图<br><img src="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205021542680.png"><br>A 记录可以通过站长工具进行查询 <name>.github.io 的 ip 地址<br>注意：不能对同一个域名同时设置 A 记录和 CNAME 记录，会造成冲突</p>
 </li>
 <li><p>在 github 修改提供服务的域名<br>在 <name>.github.io 仓库中进行设置域名，<code>Settings-&gt;Pages-&gt;Custom domain</code>, 设置为自己的域名</p>
 </li>
@@ -222,7 +222,7 @@
 </ol>
 <p>重新部署</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ hexo clean </span><br><span class="line">$ hexo g</span><br><span class="line">$ hexo d</span><br></pre></td></tr></table></figure>
-<p>从浏览器打开页面可以看到<br><img src="/source/resources/blog%20hexo.png"></p>
+<p>从浏览器打开页面可以看到<br><img src="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205021540840.png"></p>
 <h3 id="报错解决方式"><a href="#报错解决方式" class="headerlink" title="报错解决方式"></a>报错解决方式</h3><ol>
 <li><p>无法读取远程仓库</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fatal: <span class="string">&#x27;git@github.com/Yourname/Yourname.github.io.git&#x27;</span> does not appear to be a git repository</span><br><span class="line">fatal: 无法读取远程仓库。</span><br></pre></td></tr></table></figure>
