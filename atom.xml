@@ -39,20 +39,18 @@
     <title>Hello World</title>
     <link href="https://darenfy.github.io/2022/05/01/hello-world/"/>
     <id>https://darenfy.github.io/2022/05/01/hello-world/</id>
-    <published>2022-05-01T14:43:05.092Z</published>
-    <updated>2022-05-01T14:43:05.092Z</updated>
+    <published>2022-04-30T16:00:00.000Z</published>
+    <updated>2022-05-02T11:11:12.512Z</updated>
     
     
-      
-      
-        
-        
-    <summary type="html">&lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.io/docs/&quot;&gt;documentation&lt;/a&gt;</summary>
-        
-      
+    <summary type="html">Welcome to Hexo!</summary>
     
     
     
+    <category term="小技巧" scheme="https://darenfy.github.io/categories/%E5%B0%8F%E6%8A%80%E5%B7%A7/"/>
+    
+    
+    <category term="blog搭建" scheme="https://darenfy.github.io/tags/blog%E6%90%AD%E5%BB%BA/"/>
     
   </entry>
   
