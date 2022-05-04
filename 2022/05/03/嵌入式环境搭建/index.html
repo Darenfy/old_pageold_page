@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"darenfy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="记录开始学习嵌入式安全的环境搭建流程，尽可能的将各个部分拆分开，可以进行独立安装">
+<meta property="og:type" content="article">
+<meta property="og:title" content="嵌入式环境搭建">
+<meta property="og:url" content="https://darenfy.github.io/2022/05/03/%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/index.html">
+<meta property="og:site_name" content="Emiyaのblog">
+<meta property="og:description" content="记录开始学习嵌入式安全的环境搭建流程，尽可能的将各个部分拆分开，可以进行独立安装">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-05-03T09:20:00.000Z">
+<meta property="article:modified_time" content="2022-05-04T13:48:00.000Z">
+<meta property="article:author" content="emiya">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="QEMU">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://darenfy.github.io/2022/05/03/%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>嵌入式环境搭建 | Emiyaのblog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Emiyaのblog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Emiyaのblog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">3</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">3</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">4</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://darenfy.github.io/2022/05/03/%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="emiya">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Emiyaのblog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          嵌入式环境搭建
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-05-03 17:20:00" itemprop="dateCreated datePublished" datetime="2022-05-03T17:20:00+08:00">2022-05-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-05-04 21:48:00" itemprop="dateModified" datetime="2022-05-04T21:48:00+08:00">2022-05-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Iot/" itemprop="url" rel="index"><span itemprop="name">Iot</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">记录开始学习嵌入式安全的环境搭建流程，尽可能的将各个部分拆分开，可以进行独立安装</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <span id="more"></span>
+
+<h1 id="基本环境"><a href="#基本环境" class="headerlink" title="基本环境"></a>基本环境</h1><h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">HOST OS Platform: macOS</span><br><span class="line">HOST OS Version: 10.15</span><br><span class="line">虚拟机软件：VMware Fusion 12</span><br><span class="line">OS Platform:  Linux Ubuntu</span><br><span class="line">OS Version: 18.04</span><br><span class="line">Python Version: 3.6.9 (default)</span><br></pre></td></tr></table></figure>
+
+<h2 id="基础设置"><a href="#基础设置" class="headerlink" title="基础设置"></a>基础设置</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 修改为中科大源</span></span><br><span class="line"></span><br><span class="line">$ sudo apt install build-essential autoconf <span class="comment"># 配置</span></span><br><span class="line">$ sudo apt install tree jnettop htop <span class="comment"># 查看目录、连接、性能</span></span><br><span class="line">$ sudo apt install proxychains4 net-tools <span class="comment"># 查看配置网络</span></span><br><span class="line">$ sudo apt install git curl wget  <span class="comment"># 下载</span></span><br><span class="line"></span><br><span class="line">$ sudo apt install python3 python3-pip <span class="comment"># python3 环境</span></span><br><span class="line">$ python3 -m pip install --upgrade pip</span><br><span class="line">$ python3 -m pip -V</span><br><span class="line">pip 21.3.1 from /home/embeded/.local/lib/python3.6/site-packages/pip (python 3.6)</span><br></pre></td></tr></table></figure>
+
+<h1 id="软件环境搭建流程"><a href="#软件环境搭建流程" class="headerlink" title="软件环境搭建流程"></a>软件环境搭建流程</h1><h2 id="Binwalk"><a href="#Binwalk" class="headerlink" title="Binwalk"></a>Binwalk</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>Binwalk wiki 链接：<a target="_blank" rel="noopener" href="https://github.com/ReFirmLabs/binwalk/wiki">https://github.com/ReFirmLabs/binwalk/wiki</a></p>
+<p>安装参考链接：<a target="_blank" rel="noopener" href="https://github.com/ReFirmLabs/binwalk/blob/master/INSTALL.md">https://github.com/ReFirmLabs/binwalk/blob/master/INSTALL.md</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/ReFirmLabs/binwalk.git</span><br><span class="line">$ <span class="built_in">cd</span> binwalk</span><br><span class="line">$ sudo python3 setup.py install</span><br><span class="line">...</span><br><span class="line">Installed /usr/local/lib/python3.6/dist-packages/binwalk-2.3.3-py3.6.egg</span><br><span class="line">Processing dependencies <span class="keyword">for</span> binwalk==2.3.3</span><br><span class="line">Finished processing dependencies <span class="keyword">for</span> binwalk==2.3.3</span><br><span class="line"></span><br><span class="line">$ binwalk </span><br><span class="line"></span><br><span class="line">Binwalk v2.3.3</span><br><span class="line">Craig Heffner, ReFirmLabs</span><br><span class="line">https://github.com/ReFirmLabs/binwalk</span><br><span class="line"></span><br><span class="line">Usage: binwalk [OPTIONS] [FILE1] [FILE2] [FILE3] ...</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>依据 Binwalk wiki 所说，其安装依赖只有 python 解释器，其余所有依赖都是可选的运行时依赖，直接按顺序全部安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">$ sudo python3 -m pip install nose coverage <span class="comment"># 测试/测试覆盖率</span></span><br><span class="line"></span><br><span class="line">$ sudo python3 -m pip install pycryptodome <span class="comment"># 解密知名加密固件</span></span><br><span class="line"></span><br><span class="line">$ sudo apt-get install libqt4-opengl python3-opengl python3-pyqt4 python3-pyqt4.qtopengl python3-numpy python3-scipy</span><br><span class="line">$ sudo python3 -m pip install pyqtgraph <span class="comment"># 生成图及可视化</span></span><br><span class="line"></span><br><span class="line">$ sudo python3 -m pip install capstone <span class="comment"># 反汇编框架 Python-bindings</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 额外的工具自动抽取/解压文件和数据  </span></span><br><span class="line"><span class="comment"># 标准解压工具</span></span><br><span class="line">$ sudo apt-get install mtd-utils gzip bzip2 tar arj lhasa p7zip p7zip-full cabextract cramfsswap squashfs-tools sleuthkit default-jdk lzop srecord</span><br><span class="line"></span><br><span class="line"><span class="comment"># 针对非标准 SquashFS 镜像</span></span><br><span class="line">$ sudo apt-get install zlib1g-dev liblzma-dev liblzo2-dev</span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/devttys0/sasquatch</span><br><span class="line">$ (<span class="built_in">cd</span> sasquatch &amp;&amp; ./build.sh)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 针对 JFFS2 文件系统</span></span><br><span class="line">$ sudo python3 -m pip install cstruct</span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/sviehb/jefferson</span><br><span class="line">$ (<span class="built_in">cd</span> jefferson &amp;&amp; sudo python3 setup.py install)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 针对 UBIFS 文件系统</span></span><br><span class="line">$ sudo apt-get install liblzo2-dev python-lzo</span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/jrspruitt/ubi_reader</span><br><span class="line">$ (<span class="built_in">cd</span> ubi_reader &amp;&amp; sudo python3 setup.py install)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 针对 YAFFS 文件系统</span></span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/devttys0/yaffshiv</span><br><span class="line">$ (<span class="built_in">cd</span> yaffshiv &amp;&amp; sudo python3 setup.py install)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 针对 StuffIt 压缩文件</span></span><br><span class="line">$ wget -O - http://downloads.tuxfamily.org/sdtraces/stuffit520.611linux-i386.tar.gz | tar -zxv</span><br><span class="line">$ sudo <span class="built_in">cp</span> bin/unstuff /usr/local/bin/</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="出现的问题"><a href="#出现的问题" class="headerlink" title="出现的问题"></a>出现的问题</h3><p>:exclamation: 按照原文安装过程中会报错 <code>E: Unable to locate package cramfsprogs</code> 需要手动安装这个包<br>安装包都可以从 <a target="_blank" rel="noopener" href="https://launchpad.net/ubuntu">https://launchpad.net/ubuntu</a> 查找</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ wget -c https://launchpad.net/ubuntu/+archive/primary/+files/cramfsprogs_1.1-6ubuntu1_amd64.deb</span><br><span class="line">$ sudo dpkg -i cramfsprogs_1.1-6ubuntu1_amd64.deb</span><br></pre></td></tr></table></figure>
+
+<p>【optional】 binwalk plugin for ida in linux</p>
+<p>至此 binwalk 算是安装好了，至于使用放在后话吧</p>
+<h2 id="QEMU"><a href="#QEMU" class="headerlink" title="QEMU"></a>QEMU</h2><h3 id="安装-1"><a href="#安装-1" class="headerlink" title="安装"></a>安装</h3><p>qemu github 项目地址：<a target="_blank" rel="noopener" href="https://github.com/qemu/qemu">https://github.com/qemu/qemu</a></p>
+<p>qemu 官网：<a target="_blank" rel="noopener" href="https://www.qemu.org/">https://www.qemu.org/</a></p>
+<p>参考网站提供的安装方式，目前直接使用 <code>apt</code> 安装</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt install qemu</span><br><span class="line">Suggested packages:</span><br><span class="line">  qemu-user-static samba vde2 qemu-efi openbios-ppc openhackware</span><br><span class="line">  openbios-sparc sgabios ovmf debootstrap sharutils-doc bsd-mailx | mailx</span><br><span class="line">The following NEW packages will be installed:</span><br><span class="line">  binfmt-support cpu-checker ibverbs-providers ipxe-qemu</span><br><span class="line">  ipxe-qemu-256k-compat-efi-roms libaio1 libcacard0 libfdt1 libibverbs1</span><br><span class="line">  libiscsi7 libnl-route-3-200 librados2 librbd1 librdmacm1 libsdl1.2debian</span><br><span class="line">  libspice-server1 libusbredirparser1 libxen-4.9 libxenstore3.0 msr-tools qemu</span><br><span class="line">  qemu-block-extra qemu-slof qemu-system qemu-system-arm qemu-system-common</span><br><span class="line">  qemu-system-mips qemu-system-misc qemu-system-ppc qemu-system-s390x</span><br><span class="line">  qemu-system-sparc qemu-system-x86 qemu-user qemu-user-binfmt qemu-utils</span><br><span class="line">  seabios sharutils</span><br><span class="line"><span class="comment"># 可以看到 qemu-utils qemu-user qemu-system 都自动安装成功</span></span><br><span class="line">$ qemu-</span><br><span class="line">qemu-aarch64              qemu-ppc                  qemu-system-mipsel</span><br><span class="line">qemu-alpha                qemu-ppc64                qemu-system-moxie</span><br><span class="line">qemu-arm                  qemu-ppc64abi32           qemu-system-nios2</span><br><span class="line">qemu-armeb                qemu-ppc64le              qemu-system-or1k</span><br><span class="line">qemu-cris                 qemu-s390x                qemu-system-ppc</span><br><span class="line">qemu-hppa                 qemu-sh4                  qemu-system-ppc64</span><br><span class="line">qemu-i386                 qemu-sh4eb                qemu-system-ppc64le</span><br><span class="line">qemu-img                  qemu-sparc                qemu-system-ppcemb</span><br><span class="line">qemu-io                   qemu-sparc32plus          qemu-system-s390x</span><br><span class="line">qemu-m68k                 qemu-sparc64              qemu-system-sh4</span><br><span class="line">qemu-make-debian-root     qemu-system-aarch64       qemu-system-sh4eb</span><br><span class="line">qemu-microblaze           qemu-system-alpha         qemu-system-sparc</span><br><span class="line">qemu-microblazeel         qemu-system-arm           qemu-system-sparc64</span><br><span class="line">qemu-mips                 qemu-system-cris          qemu-system-tricore</span><br><span class="line">qemu-mips64               qemu-system-i386          qemu-system-unicore32</span><br><span class="line">qemu-mips64el             qemu-system-lm32          qemu-system-x86_64</span><br><span class="line">qemu-mipsel               qemu-system-m68k          qemu-system-xtensa</span><br><span class="line">qemu-mipsn32              qemu-system-microblaze    qemu-system-xtensaeb</span><br><span class="line">qemu-mipsn32el            qemu-system-microblazeel  qemu-tilegx</span><br><span class="line">qemu-nbd                  qemu-system-mips          qemu-x86_64</span><br><span class="line">qemu-nios2                qemu-system-mips64        </span><br><span class="line">qemu-or1k                 qemu-system-mips64el </span><br><span class="line"></span><br><span class="line"><span class="comment"># 依据建议的安装包手动安装</span></span><br><span class="line">$ sudo apt install qemu-user-static</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="交叉编译环境"><a href="#交叉编译环境" class="headerlink" title="交叉编译环境"></a>交叉编译环境</h2><h3 id="安装-2"><a href="#安装-2" class="headerlink" title="安装"></a>安装</h3><p>交叉编译这个名字其实有时候很费解，还不如直接<strong>跨架构编译</strong>，即能够在一个体系架构下编译另一个体系架构的程序<br>🌰 在 X86_64 Ubuntu 虚拟机下能够编译 MIPS 程序</p>
+<p>🧐 安装似乎可以分成 <strong>手动 buildroot 源码编译</strong> 和 <strong>自动 apt 安装</strong><br><strong>自动安装</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 以 MIPS 小端序 架构为例 自动安装</span></span><br><span class="line">$ sudo apt install gcc-mipsel-linux-gnu </span><br><span class="line">$ sudo apt install gcc-multilib-mipsel-linux-gnu</span><br><span class="line">$ mipsel-linux-gnu-</span><br><span class="line">mipsel-linux-gnu-addr2line     mipsel-linux-gnu-gcov-7</span><br><span class="line">mipsel-linux-gnu-ar            mipsel-linux-gnu-gcov-dump</span><br><span class="line">mipsel-linux-gnu-as            mipsel-linux-gnu-gcov-dump-7</span><br><span class="line">mipsel-linux-gnu-c++filt       mipsel-linux-gnu-gcov-tool</span><br><span class="line">mipsel-linux-gnu-cpp           mipsel-linux-gnu-gcov-tool-7</span><br><span class="line">mipsel-linux-gnu-cpp-7         mipsel-linux-gnu-gprof</span><br><span class="line">mipsel-linux-gnu-dwp           mipsel-linux-gnu-ld</span><br><span class="line">mipsel-linux-gnu-elfedit       mipsel-linux-gnu-ld.bfd</span><br><span class="line">mipsel-linux-gnu-gcc           mipsel-linux-gnu-ld.gold</span><br><span class="line">mipsel-linux-gnu-gcc-7         mipsel-linux-gnu-nm</span><br><span class="line">mipsel-linux-gnu-gcc-ar        mipsel-linux-gnu-objcopy</span><br><span class="line">mipsel-linux-gnu-gcc-ar-7      mipsel-linux-gnu-objdump</span><br><span class="line">mipsel-linux-gnu-gcc-nm        mipsel-linux-gnu-ranlib</span><br><span class="line">mipsel-linux-gnu-gcc-nm-7      mipsel-linux-gnu-readelf</span><br><span class="line">mipsel-linux-gnu-gcc-ranlib    mipsel-linux-gnu-size</span><br><span class="line">mipsel-linux-gnu-gcc-ranlib-7  mipsel-linux-gnu-strings</span><br><span class="line">mipsel-linux-gnu-gcov          mipsel-linux-gnu-strip</span><br><span class="line"></span><br><span class="line"><span class="comment"># 所有的库都安装好</span></span><br><span class="line">$ <span class="built_in">ls</span> /usr/mipsel-linux-gnu/</span><br><span class="line">bin  include  lib  lib32  lib64</span><br></pre></td></tr></table></figure>
+
+<h3 id="出现的问题-1"><a href="#出现的问题-1" class="headerlink" title="出现的问题"></a>出现的问题</h3><p><strong>自动安装</strong><br>在运行动态编译程序时，会出现无法找到运行库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">embeded@ubuntu:~/domesticRouter/2$ file hellomips2</span><br><span class="line">hellomips2: ELF 32-bit LSB executable, MIPS, MIPS32 rel2 version 1 (SYSV), dynamically linked, interpreter /lib/ld.so.1, <span class="keyword">for</span> GNU/Linux 3.2.0, BuildID[sha1]=102923f6f07c0954cdcec2091a8e65988d646527, not stripped</span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ ./hellomips2</span><br><span class="line">/lib/ld.so.1: No such file or directory</span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ qemu-mipsel hellomips2</span><br><span class="line">/lib/ld.so.1: No such file or directory</span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ qemu-mipsel-static hellomips2</span><br><span class="line">/lib/ld.so.1: No such file or directory</span><br><span class="line"></span><br><span class="line"><span class="comment"># 猜测是动态编译的程序默认去 /lib 下进行寻找动态链接库</span></span><br><span class="line"><span class="comment"># 两种解决办法</span></span><br><span class="line"><span class="comment"># 1. 将动态链接库直接复制到 /lib 下，执行命令行执行模拟，【感觉环境会被搞乱</span></span><br><span class="line">embeded@ubuntu:/usr/mipsel-linux-gnu/lib$ sudo <span class="built_in">cp</span> ld.so.1 /lib</span><br><span class="line">embeded@ubuntu:/usr/mipsel-linux-gnu/lib$ <span class="built_in">ls</span> /lib</span><br><span class="line">apparmor       hdparm                                lsb            terminfo</span><br><span class="line">brltty         ifupdown                              modprobe.d     udev</span><br><span class="line">console-setup  init                                  modules        ufw</span><br><span class="line">cpp            klibc-IYXwqr0atR70aQDgNUuRThfwUwA.so  netplan        x86_64-linux-gnu</span><br><span class="line">crda           ld.so.1                               recovery-mode</span><br><span class="line">firmware       linux-sound-base                      systemd</span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ qemu-mipsel-static hellomips2 <span class="string">&quot;can run&quot;</span></span><br><span class="line">can run</span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ qemu-mipsel hellomips2 <span class="string">&quot;can run&quot;</span></span><br><span class="line">can run</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 将动态库和静态编译模拟程序qemu-mipsel-static复制到需要模拟的程序所在目录下，执行模拟 【感觉比第一种选择好</span></span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ <span class="built_in">cp</span> -r /usr/mipsel-linux-gnu/lib .</span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ <span class="built_in">cp</span> $(<span class="built_in">which</span> qemu-mipsel-static) .</span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ sudo <span class="built_in">chroot</span> . ./qemu-mipsel-static hellomips2 <span class="string">&quot;can run&quot;</span></span><br><span class="line">can run</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 在模拟时添加路径 【感觉最简单</span></span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ qemu-mipsel -L <span class="string">&quot;/usr/mipsel-linux-gnu&quot;</span> hellomips2 <span class="string">&quot;can run&quot;</span></span><br><span class="line">can run</span><br></pre></td></tr></table></figure>
+
+<p><strong>神奇的未理解的现象</strong><br>在理论来说，不同架构的程序是不能运行的，但是在静态编译后却能够运行，有点费解</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 尝试程序为 家用路由器漏洞 一书第二章 hello 和 静态交叉编译的 hellomips</span></span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ file hello</span><br><span class="line">hello: ELF 32-bit MSB executable, MIPS, MIPS32 version 1 (SYSV), statically linked, not stripped</span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ file hellomips</span><br><span class="line">hellomips: ELF 32-bit LSB executable, MIPS, MIPS32 rel2 version 1 (SYSV), statically linked, <span class="keyword">for</span> GNU/Linux 3.2.0, BuildID[sha1]=a0c1b5ffe47a77b693643e4637baa72d4496a962, not stripped</span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ <span class="built_in">uname</span> -a </span><br><span class="line">Linux ubuntu 5.4.0-84-generic <span class="comment">#94~18.04.1-Ubuntu SMP Thu Aug 26 23:17:46 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux</span></span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ ./hello <span class="string">&quot;Why can run&quot;</span></span><br><span class="line">Why can run</span><br><span class="line">embeded@ubuntu:~/domesticRouter/2$ ./hellomips <span class="string">&quot;Why can run&quot;</span></span><br><span class="line">Why can run</span><br></pre></td></tr></table></figure>
+
+<h1 id="软件环境配置流程"><a href="#软件环境配置流程" class="headerlink" title="软件环境配置流程"></a>软件环境配置流程</h1><h2 id="MIPS-系统网络配置"><a href="#MIPS-系统网络配置" class="headerlink" title="MIPS 系统网络配置"></a>MIPS 系统网络配置</h2><p><strong>安装工具库</strong></p>
+<p>安装 User mode Linux 工具,User Mode Linux 能够以用户态启动 Linux 内核，提供了一种虚拟机，将 Linux 作为用户进程运行在另一个 Linux 内核下。 这对于内核开发、沙盒、监禁、实验和许多其他事情很有用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">embeded@ubuntu:~$ sudo apt install uml-utilities</span><br><span class="line">embeded@ubuntu:~$ uml_</span><br><span class="line">uml_mconsole  uml_moo       uml_switch    </span><br><span class="line">uml_mkcow     uml_mount     uml_watchdog</span><br></pre></td></tr></table></figure>
+<p>安装 Linux 网桥工具,能够创建和管理网桥设备，可为VM设置网络</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">embeded@ubuntu:~$ sudo apt install bridge-utils</span><br></pre></td></tr></table></figure>
+<p><strong>配置主机网络</strong><br>要构建模拟系统的网络配置，需要在主机网络配置网络接口，查看系统网络配置 可以看到两个网络接口为 ens33 和 lo</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">embeded@ubuntu:~$ ifconfig </span><br><span class="line">ens33: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.31.111  netmask 255.255.255.0  broadcast 192.168.31.255</span><br><span class="line">        inet6 fe80::ae68:bfd8:87e6:7a5e  prefixlen 64  scopeid 0x20&lt;<span class="built_in">link</span>&gt;</span><br><span class="line">        ether 00:0c:29:83:f8:e7  txqueuelen 1000  (Ethernet)</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span><br><span class="line">        inet 127.0.0.1  netmask 255.0.0.0</span><br><span class="line">        inet6 ::1  prefixlen 128  scopeid 0x10&lt;host&gt;</span><br><span class="line">        loop  txqueuelen 1000  (Local Loopback)</span><br><span class="line">        ...</span><br></pre></td></tr></table></figure>
+<p>修改主机网络配置 将 ens33 作为桥接端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">embeded@ubuntu:~$ sudo nano /etc/network/interfaces</span><br><span class="line"><span class="comment"># interfaces(5) file used by ifup(8) and ifdown(8)</span></span><br><span class="line">auto lo</span><br><span class="line">iface lo inet loopback</span><br><span class="line"></span><br><span class="line">auto ens33      </span><br><span class="line">iface ens33 inet dhcp</span><br><span class="line"></span><br><span class="line"><span class="comment"># auto br0</span></span><br><span class="line">iface br0 inet dhcp</span><br><span class="line">  bridge_ports ens33</span><br><span class="line">  bridge_maxwait 0</span><br></pre></td></tr></table></figure>
+
+<!-- **修改 QEMU 网络接口脚本**
+由于 ``qemu-ifup`` 文件早已存在，直接在脚本后面添加，能够支持 QEMU 在启动时处理网络
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">embeded@ubuntu:~$ sudo nano /etc/qemu-ifup</span><br><span class="line"><span class="comment">#!/bin/sh</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Executing /etc/qemu-ifup&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Bridge up <span class="variable">$1</span> for bridged mode...&quot;</span></span><br><span class="line">sudo /sbin/ifconfig <span class="variable">$1</span> 0.0.0.0 promisc up</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Adding <span class="variable">$1</span> to br0...&quot;</span></span><br><span class="line">sudo /sbin/brct1 addif br0 <span class="variable">$1</span></span><br><span class="line"><span class="built_in">sleep</span> 2</span><br><span class="line">``` --&gt;</span><br><span class="line"></span><br><span class="line">**重启网络**</span><br><span class="line">为了使配置生效，需要将网络进行重启</span><br><span class="line">```bash</span><br><span class="line">embeded@ubuntu:~$ sudo /etc/init.d/networking restart</span><br><span class="line">[ ok ] Restarting networking (via systemctl): networking.service.</span><br></pre></td></tr></table></figure>
+
+<p><strong>启用桥接网络</strong><br>先关闭 ens33 端口，查看网络接口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">embeded@ubuntu:~$ sudo ifdown ens33</span><br><span class="line">...</span><br><span class="line">DHCPRELEASE on ens33 to 192.168.31.1 port 67 (xid=0x297aad1a)</span><br><span class="line"></span><br><span class="line">embeded@ubuntu:~$ ifconfig </span><br><span class="line">lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span><br><span class="line">        inet 127.0.0.1  netmask 255.0.0.0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>开启 br0 桥接端口，重新查看网络接口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">embeded@ubuntu:~$ sudo ifup br0</span><br><span class="line">...</span><br><span class="line">DHCPDISCOVER on br0 to 255.255.255.255 port 67 interval 3 (xid=0x6dfa5573)</span><br><span class="line">DHCPREQUEST of 192.168.31.111 on br0 to 255.255.255.255 port 67 (xid=0x7355fa6d)</span><br><span class="line">DHCPOFFER of 192.168.31.111 from 192.168.31.1</span><br><span class="line">DHCPACK of 192.168.31.111 from 192.168.31.1</span><br><span class="line">bound to 192.168.31.111 -- renewal <span class="keyword">in</span> 16622 seconds.</span><br><span class="line"></span><br><span class="line">embeded@ubuntu:~$ ifconfig </span><br><span class="line">br0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.31.111  netmask 255.255.255.0  broadcast 192.168.31.255</span><br><span class="line"></span><br><span class="line">ens33: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.31.111  netmask 255.255.255.0  broadcast 192.168.31.255</span><br><span class="line"></span><br><span class="line">lo: flags=73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span><br><span class="line">        inet 127.0.0.1  netmask 255.0.0.0</span><br></pre></td></tr></table></figure>
+
+<p><strong>修改MIPS系统网络</strong><br>以 MIPS 大端系统为例，虚拟机文件地址: <a target="_blank" rel="noopener" href="https://people.debian.org/~aurel32/qemu/mips/">https://people.debian.org/~aurel32/qemu/mips/</a> 选用 <code>vmlinux-2.6.32-5-4kc-malta</code> 内核文件及 <code>debian_squeeze_mips_standard.qcow2</code> 磁盘镜像</p>
+<p>启动 MIPS 虚拟机</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">embeded@ubuntu:~/Desktop$ sudo qemu-system-mips -M malta -kernel vmlinux-2.6.32-5-4kc-malta -hda debian_squeeze_mips_standard.qcow2 -append <span class="string">&quot;root=/dev/sda1 console=tty0&quot;</span> -net nic,macaddr=00:16:3e:00:00:01 -net tap -nographic</span><br><span class="line">[    0.000000] Initializing cgroup subsys cpuset</span><br><span class="line">[    0.000000] Initializing cgroup subsys cpu</span><br><span class="line">...</span><br><span class="line"><span class="comment"># 账号密码均为 root</span></span><br><span class="line">debian-mips login: root</span><br><span class="line">Password: </span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看网络接口</span></span><br><span class="line">root@debian-mips:~<span class="comment"># ifconfig -a</span></span><br><span class="line">eth1      Link encap:Ethernet  HWaddr 00:16:3e:00:00:01  </span><br><span class="line">          BROADCAST MULTICAST  MTU:1500  Metric:1</span><br><span class="line"></span><br><span class="line">lo        Link encap:Local Loopback  </span><br><span class="line">          inet addr:127.0.0.1  Mask:255.0.0.0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>修改MIPS系统网络配置文件 <code>/etc/network/interfaces</code>, 将 <code>eh0</code> 替换成 <code>eh1</code>，并启动 <code>en1</code> 接口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">root@debian-mips:~# nano /etc/network/interfaces</span><br><span class="line"># This file describes the network interfaces available on your system</span><br><span class="line"># and how to activate them. For more information, see interfaces(5).</span><br><span class="line"></span><br><span class="line"># The loopback network interface</span><br><span class="line">auto lo</span><br><span class="line">iface lo inet loopback</span><br><span class="line"></span><br><span class="line"># The primary network interface</span><br><span class="line">allow-hotplug eth1</span><br><span class="line">iface eth1 inet dhcp</span><br><span class="line"></span><br><span class="line">root@debian-mips:~# ifup eth1</span><br><span class="line">...</span><br><span class="line">bound to 192.168.31.170 -- renewal in 21254 seconds.</span><br><span class="line"></span><br><span class="line">root@debian-mips:~# ifconfig </span><br><span class="line">eth1      Link encap:Ethernet  HWaddr 00:16:3e:00:00:01  </span><br><span class="line">          inet addr:192.168.31.170  Bcast:192.168.31.255  Mask:255.255.255.0</span><br><span class="line"></span><br><span class="line">lo        Link encap:Local Loopback  </span><br><span class="line">          inet addr:127.0.0.1  Mask:255.0.0.0</span><br><span class="line"></span><br><span class="line">root@debian-mips:~# ping 192.168.31.111</span><br><span class="line">PING 192.168.31.111 (192.168.31.111) 56(84) bytes of data.</span><br><span class="line">64 bytes from 192.168.31.111: icmp_req=1 ttl=64 time=6.43 ms</span><br><span class="line"></span><br><span class="line">root@debian-mips:~# ping www.baidu.com</span><br><span class="line">PING www.a.shifen.com (112.80.248.76) 56(84) bytes of data.</span><br><span class="line">64 bytes from 112.80.248.76: icmp_req=1 ttl=47 time=38.3 ms</span><br></pre></td></tr></table></figure>
+<p>此时 MIPS 系统的网络算是配置完成，接下来就能够使用 ssh 对其进行管理</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+              <a href="/tags/QEMU/" rel="tag"># QEMU</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/02/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95-2/" rel="prev" title="个人博客搭建记录[2]">
+      <i class="fa fa-chevron-left"></i> 个人博客搭建记录[2]
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2099/06/16/Emiya%E3%81%AEdiary/" rel="next" title="Emiyaのdiary">
+      Emiyaのdiary <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%8E%AF%E5%A2%83"><span class="nav-number">1.</span> <span class="nav-text">基本环境</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83"><span class="nav-number">1.1.</span> <span class="nav-text">系统环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E8%AE%BE%E7%BD%AE"><span class="nav-number">1.2.</span> <span class="nav-text">基础设置</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BD%AF%E4%BB%B6%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">软件环境搭建流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Binwalk"><span class="nav-number">2.1.</span> <span class="nav-text">Binwalk</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.1.1.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">2.1.2.</span> <span class="nav-text">出现的问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#QEMU"><span class="nav-number">2.2.</span> <span class="nav-text">QEMU</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-1"><span class="nav-number">2.2.1.</span> <span class="nav-text">安装</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91%E7%8E%AF%E5%A2%83"><span class="nav-number">2.3.</span> <span class="nav-text">交叉编译环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-2"><span class="nav-number">2.3.1.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98-1"><span class="nav-number">2.3.2.</span> <span class="nav-text">出现的问题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BD%AF%E4%BB%B6%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E6%B5%81%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">软件环境配置流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MIPS-%E7%B3%BB%E7%BB%9F%E7%BD%91%E7%BB%9C%E9%85%8D%E7%BD%AE"><span class="nav-number">3.1.</span> <span class="nav-text">MIPS 系统网络配置</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="emiya"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">emiya</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="">
+    <a target="_blank" class="social-link" href="/atom.xml" style="color: burlywood;">
+      <span class="icon">
+        <i class="fa fa-rss"></i>
+      </span>
+      <span class="label">RSS</span>
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/darenfy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;darenfy" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:darenfy@gmail.com" title="E-Mail → mailto:darenfy@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">emiya</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
