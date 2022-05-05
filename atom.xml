@@ -6,7 +6,7 @@
   <link href="https://darenfy.github.io/atom.xml" rel="self"/>
   
   <link href="https://darenfy.github.io/"/>
-  <updated>2022-05-04T13:50:38.503Z</updated>
+  <updated>2022-05-05T08:11:23.480Z</updated>
   <id>https://darenfy.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://darenfy.github.io/2099/06/16/Emiya%E3%81%AEdiary/"/>
     <id>https://darenfy.github.io/2099/06/16/Emiya%E3%81%AEdiary/</id>
     <published>2099-06-15T16:00:00.000Z</published>
-    <updated>2022-05-04T13:50:38.503Z</updated>
+    <updated>2022-05-05T08:11:23.480Z</updated>
     
     
     <summary type="html">记录学习的日常</summary>
@@ -30,6 +30,31 @@
     
     <category term="学习日记" scheme="https://darenfy.github.io/categories/%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0/"/>
     
+    
+  </entry>
+  
+  <entry>
+    <title>修复路由器程序运行环境</title>
+    <link href="https://darenfy.github.io/2022/05/05/%E4%BF%AE%E5%A4%8D%E8%B7%AF%E7%94%B1%E5%99%A8%E7%A8%8B%E5%BA%8F%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83/"/>
+    <id>https://darenfy.github.io/2022/05/05/%E4%BF%AE%E5%A4%8D%E8%B7%AF%E7%94%B1%E5%99%A8%E7%A8%8B%E5%BA%8F%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83/</id>
+    <published>2022-05-05T02:46:04.000Z</published>
+    <updated>2022-05-05T08:10:00.000Z</updated>
+    
+    
+    <summary type="html">在进行路由器安全研究过程中，模拟运行路由器程序可能会遇到各种问题，简要学习一下修复技巧</summary>
+    
+    
+    
+    <category term="Iot" scheme="https://darenfy.github.io/categories/Iot/"/>
+    
+    <category term="路由器" scheme="https://darenfy.github.io/categories/Iot/%E8%B7%AF%E7%94%B1%E5%99%A8/"/>
+    
+    
+    <category term="Linux" scheme="https://darenfy.github.io/tags/Linux/"/>
+    
+    <category term="QEMU" scheme="https://darenfy.github.io/tags/QEMU/"/>
+    
+    <category term="MIPS" scheme="https://darenfy.github.io/tags/MIPS/"/>
     
   </entry>
   
