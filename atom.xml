@@ -6,7 +6,7 @@
   <link href="https://darenfy.github.io/atom.xml" rel="self"/>
   
   <link href="https://darenfy.github.io/"/>
-  <updated>2022-05-06T05:37:57.016Z</updated>
+  <updated>2022-05-13T03:01:34.230Z</updated>
   <id>https://darenfy.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://darenfy.github.io/2099/06/16/Emiya%E3%81%AEdiary/"/>
     <id>https://darenfy.github.io/2099/06/16/Emiya%E3%81%AEdiary/</id>
     <published>2099-06-15T16:00:00.000Z</published>
-    <updated>2022-05-06T05:37:57.016Z</updated>
+    <updated>2022-05-13T03:01:34.230Z</updated>
     
     
     <summary type="html">记录学习的日常</summary>
@@ -30,6 +30,75 @@
     
     <category term="学习日记" scheme="https://darenfy.github.io/categories/%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0/"/>
     
+    
+  </entry>
+  
+  <entry>
+    <title>CTF linux kernel pwn 0 之 kernel bypass-smep</title>
+    <link href="https://darenfy.github.io/2022/05/12/CTF-linux-kernel-pwn-0-%E4%B9%8B-kernel-bypass-smep/"/>
+    <id>https://darenfy.github.io/2022/05/12/CTF-linux-kernel-pwn-0-%E4%B9%8B-kernel-bypass-smep/</id>
+    <published>2022-05-12T11:33:04.000Z</published>
+    <updated>2022-05-13T03:02:00.000Z</updated>
+    
+    
+    <summary type="html">Kernel pwn 入门系列之 Kernel bypass-smep</summary>
+    
+    
+    
+    <category term="CTF" scheme="https://darenfy.github.io/categories/CTF/"/>
+    
+    <category term="PWN" scheme="https://darenfy.github.io/categories/CTF/PWN/"/>
+    
+    
+    <category term="Linux" scheme="https://darenfy.github.io/tags/Linux/"/>
+    
+    <category term="kernel" scheme="https://darenfy.github.io/tags/kernel/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>CTF linux kernel pwn 0 之 Kernel ROP</title>
+    <link href="https://darenfy.github.io/2022/05/10/CTF-linux-kernel-pwn-0-%E4%B9%8B-Kernel-ROP/"/>
+    <id>https://darenfy.github.io/2022/05/10/CTF-linux-kernel-pwn-0-%E4%B9%8B-Kernel-ROP/</id>
+    <published>2022-05-10T01:12:46.000Z</published>
+    <updated>2022-05-13T03:02:00.000Z</updated>
+    
+    
+    <summary type="html">Kernel pwn 入门系列之 Kernel ROP ret2usr</summary>
+    
+    
+    
+    <category term="CTF" scheme="https://darenfy.github.io/categories/CTF/"/>
+    
+    <category term="PWN" scheme="https://darenfy.github.io/categories/CTF/PWN/"/>
+    
+    
+    <category term="Linux" scheme="https://darenfy.github.io/tags/Linux/"/>
+    
+    <category term="kernel" scheme="https://darenfy.github.io/tags/kernel/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>0CTF 2021 kernote</title>
+    <link href="https://darenfy.github.io/2022/05/06/0CTF-2021-kernote/"/>
+    <id>https://darenfy.github.io/2022/05/06/0CTF-2021-kernote/</id>
+    <published>2022-05-06T06:51:43.000Z</published>
+    <updated>2022-05-13T03:02:00.000Z</updated>
+    
+    
+    <summary type="html">0CTF 2021 kernote writeups</summary>
+    
+    
+    
+    <category term="CTF" scheme="https://darenfy.github.io/categories/CTF/"/>
+    
+    <category term="PWN" scheme="https://darenfy.github.io/categories/CTF/PWN/"/>
+    
+    
+    <category term="Linux" scheme="https://darenfy.github.io/tags/Linux/"/>
+    
+    <category term="kernel" scheme="https://darenfy.github.io/tags/kernel/"/>
     
   </entry>
   
@@ -47,12 +116,14 @@
     
     <category term="CTF" scheme="https://darenfy.github.io/categories/CTF/"/>
     
+    <category term="PWN" scheme="https://darenfy.github.io/categories/CTF/PWN/"/>
+    
     
     <category term="Linux" scheme="https://darenfy.github.io/tags/Linux/"/>
     
     <category term="QEMU" scheme="https://darenfy.github.io/tags/QEMU/"/>
     
-    <category term="Pwn" scheme="https://darenfy.github.io/tags/Pwn/"/>
+    <category term="kernel" scheme="https://darenfy.github.io/tags/kernel/"/>
     
   </entry>
   
