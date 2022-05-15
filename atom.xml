@@ -6,7 +6,7 @@
   <link href="https://darenfy.github.io/atom.xml" rel="self"/>
   
   <link href="https://darenfy.github.io/"/>
-  <updated>2022-05-13T03:01:34.230Z</updated>
+  <updated>2022-05-15T07:00:20.085Z</updated>
   <id>https://darenfy.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://darenfy.github.io/2099/06/16/Emiya%E3%81%AEdiary/"/>
     <id>https://darenfy.github.io/2099/06/16/Emiya%E3%81%AEdiary/</id>
     <published>2099-06-15T16:00:00.000Z</published>
-    <updated>2022-05-13T03:01:34.230Z</updated>
+    <updated>2022-05-15T07:00:20.085Z</updated>
     
     
     <summary type="html">记录学习的日常</summary>
@@ -30,6 +30,101 @@
     
     <category term="学习日记" scheme="https://darenfy.github.io/categories/%E5%AD%A6%E4%B9%A0%E6%97%A5%E8%AE%B0/"/>
     
+    
+  </entry>
+  
+  <entry>
+    <title>Linux Kernel 之 那一束光</title>
+    <link href="https://darenfy.github.io/2022/05/14/Linux-Kernel-%E4%B9%8B-%E9%82%A3%E4%B8%80%E6%9D%9F%E5%85%89/"/>
+    <id>https://darenfy.github.io/2022/05/14/Linux-Kernel-%E4%B9%8B-%E9%82%A3%E4%B8%80%E6%9D%9F%E5%85%89/</id>
+    <published>2022-05-14T03:16:47.000Z</published>
+    <updated>2022-05-15T06:58:00.000Z</updated>
+    
+    
+    <summary type="html">学习 Linux Kernel 的启动流程 - Kernel 是如何初始化的？</summary>
+    
+    
+    
+    <category term="Kernel" scheme="https://darenfy.github.io/categories/Kernel/"/>
+    
+    
+    <category term="Linux" scheme="https://darenfy.github.io/tags/Linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Linux Kernel 挖矿之旅</title>
+    <link href="https://darenfy.github.io/2022/05/13/Linux-Kernel-%E6%8C%96%E7%9F%BF%E4%B9%8B%E6%97%85/"/>
+    <id>https://darenfy.github.io/2022/05/13/Linux-Kernel-%E6%8C%96%E7%9F%BF%E4%B9%8B%E6%97%85/</id>
+    <published>2022-05-13T06:32:34.000Z</published>
+    <updated>2022-05-15T06:58:00.000Z</updated>
+    
+    
+    <summary type="html">学习 Linux Kernel 的身前身后事</summary>
+    
+    
+    
+    <category term="Kernel" scheme="https://darenfy.github.io/categories/Kernel/"/>
+    
+    
+    <category term="Linux" scheme="https://darenfy.github.io/tags/Linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Linux Kernel 之 开天辟地</title>
+    <link href="https://darenfy.github.io/2022/05/13/Linux-Kernel-%E4%B9%8B-%E5%BC%80%E5%A4%A9%E8%BE%9F%E5%9C%B0/"/>
+    <id>https://darenfy.github.io/2022/05/13/Linux-Kernel-%E4%B9%8B-%E5%BC%80%E5%A4%A9%E8%BE%9F%E5%9C%B0/</id>
+    <published>2022-05-13T06:19:26.000Z</published>
+    <updated>2022-05-14T03:15:00.000Z</updated>
+    
+    
+    <summary type="html">学习 Linux Kernel 的启动流程 - Kernel 是如何装载到内存中的？</summary>
+    
+    
+    
+    <category term="Kernel" scheme="https://darenfy.github.io/categories/Kernel/"/>
+    
+    
+    <category term="Linux" scheme="https://darenfy.github.io/tags/Linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Command Line Guide - CLI</title>
+    <link href="https://darenfy.github.io/2022/05/13/Command-Line-Guide/"/>
+    <id>https://darenfy.github.io/2022/05/13/Command-Line-Guide/</id>
+    <published>2022-05-13T04:28:02.000Z</published>
+    <updated>2022-05-13T04:28:02.000Z</updated>
+    
+    
+    <summary type="html">命令行使用指北系列 - 命令行工具</summary>
+    
+    
+    
+    <category term="杂项" scheme="https://darenfy.github.io/categories/%E6%9D%82%E9%A1%B9/"/>
+    
+    
+    <category term="Command" scheme="https://darenfy.github.io/tags/Command/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>awesome-recommand</title>
+    <link href="https://darenfy.github.io/2022/05/13/awesome-recommand/"/>
+    <id>https://darenfy.github.io/2022/05/13/awesome-recommand/</id>
+    <published>2022-05-13T03:14:32.000Z</published>
+    <updated>2022-05-13T03:14:32.000Z</updated>
+    
+    
+    <summary type="html">awesome-wiki-list 主要记录笔者自己摸过的（不定期更新）</summary>
+    
+    
+    
+    <category term="阅读笔记" scheme="https://darenfy.github.io/categories/%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/"/>
+    
+    
+    <category term="推荐" scheme="https://darenfy.github.io/tags/%E6%8E%A8%E8%8D%90/"/>
     
   </entry>
   
@@ -185,7 +280,7 @@
     
     
     
-    <category term="小技巧" scheme="https://darenfy.github.io/categories/%E5%B0%8F%E6%8A%80%E5%B7%A7/"/>
+    <category term="杂项" scheme="https://darenfy.github.io/categories/%E6%9D%82%E9%A1%B9/"/>
     
     
     <category term="blog搭建" scheme="https://darenfy.github.io/tags/blog%E6%90%AD%E5%BB%BA/"/>
@@ -204,7 +299,7 @@
     
     
     
-    <category term="小技巧" scheme="https://darenfy.github.io/categories/%E5%B0%8F%E6%8A%80%E5%B7%A7/"/>
+    <category term="杂项" scheme="https://darenfy.github.io/categories/%E6%9D%82%E9%A1%B9/"/>
     
     
     <category term="blog搭建" scheme="https://darenfy.github.io/tags/blog%E6%90%AD%E5%BB%BA/"/>

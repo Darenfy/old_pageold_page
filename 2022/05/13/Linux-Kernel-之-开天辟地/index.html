@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"darenfy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="学习 Linux Kernel 的启动流程 - Kernel 是如何装载到内存中的？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux Kernel 之 开天辟地">
+<meta property="og:url" content="https://darenfy.github.io/2022/05/13/Linux-Kernel-%E4%B9%8B-%E5%BC%80%E5%A4%A9%E8%BE%9F%E5%9C%B0/index.html">
+<meta property="og:site_name" content="Emiyaのblog">
+<meta property="og:description" content="学习 Linux Kernel 的启动流程 - Kernel 是如何装载到内存中的？">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205132021604.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205132023418.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205132024069.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205132027504.png">
+<meta property="article:published_time" content="2022-05-13T06:19:26.000Z">
+<meta property="article:modified_time" content="2022-05-14T03:15:00.000Z">
+<meta property="article:author" content="emiya">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205132021604.png">
+
+<link rel="canonical" href="https://darenfy.github.io/2022/05/13/Linux-Kernel-%E4%B9%8B-%E5%BC%80%E5%A4%A9%E8%BE%9F%E5%9C%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux Kernel 之 开天辟地 | Emiyaのblog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Emiyaのblog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Emiyaのblog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">8</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">14</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://darenfy.github.io/2022/05/13/Linux-Kernel-%E4%B9%8B-%E5%BC%80%E5%A4%A9%E8%BE%9F%E5%9C%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="emiya">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Emiyaのblog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux Kernel 之 开天辟地
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-05-13 14:19:26" itemprop="dateCreated datePublished" datetime="2022-05-13T14:19:26+08:00">2022-05-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-05-14 11:15:00" itemprop="dateModified" datetime="2022-05-14T11:15:00+08:00">2022-05-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kernel/" itemprop="url" rel="index"><span itemprop="name">Kernel</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">学习 Linux Kernel 的启动流程 - Kernel 是如何装载到内存中的？</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <span id="more"></span>
+<h2 id="从-CPU-开始"><a href="#从-CPU-开始" class="headerlink" title="从 CPU 开始"></a>从 CPU 开始</h2><h3 id="通电启动复位"><a href="#通电启动复位" class="headerlink" title="通电启动复位"></a>通电启动复位</h3><p>在 CPU 通电后，会对内置寄存器进行复位</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">IP          0xfff0</span><br><span class="line">CS selector 0xf000</span><br><span class="line">CS base     0xffff0000</span><br></pre></td></tr></table></figure>
+<p>这也就意味着 <code>Phsical Address = CS * 16 + IP = 0xFFFFFFF0</code></p>
+<p>此地称之为 <strong>复位向量</strong> 即 CPU 重置后期望执行的第一条语句的内存地址，可以看到他仅包含简单的跳转指令，可以理解为 <code>jump _start16bit - ( . + 2)</code>，即跳转到 BIOS</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">    .section &quot;.reset&quot;, &quot;ax&quot;, %progbits</span><br><span class="line">    .code16</span><br><span class="line">.globl    _start</span><br><span class="line">_start:</span><br><span class="line">    .byte  0xe9</span><br><span class="line">    .int   _start16bit - ( . + 2 )</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+<h3 id="BIOS-搜索引导程序"><a href="#BIOS-搜索引导程序" class="headerlink" title="BIOS 搜索引导程序"></a>BIOS 搜索引导程序</h3><p>BIOS即基本输入输出系统，它主要工作是根据记录的可引导设备列表进行搜索可引导程序</p>
+<p>我们常见的可引导设备就是硬盘，对于硬盘，BIOS将会搜索其引导扇区，如果硬盘存在 MBR 分区，则引导扇区存储在第一个扇区的前 446 字节处，扇区的结尾是 <code>0x55</code> 和 <code>0xaa</code>，BIOS 通常是通过这两个魔术字节来判断设备是否可引导。</p>
+<p>对于 Linux 来说有很多的引导程序，Linux 内核通过 Boot protocal 定义实现引导程序</p>
+<p><strong>以 GRUB 2 为例</strong><br>常规来说，启动扇区的代码是 <code>boot.img</code>，通常仅占有 1 个扇区，做完必要的初始化后就跳转到 <code>GRUB 2 core image</code> 执行，对应的代码可以参照 <code>diskboot.img</code>，通常存储在引导扇区之后第一个可用分区之前，能够将引导程序的代码和文件加载到程序中，…，最后使用 GRUB <code>boot</code> 命令引导选择的操作系统</p>
+<p>在内核被引导入内存后，内存使用情况如下</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">         | Protected-mode kernel  |</span><br><span class="line">100000   +------------------------+</span><br><span class="line">         | I/O memory hole        |</span><br><span class="line">0A0000   +------------------------+</span><br><span class="line">         | Reserved for BIOS      | Leave as much as possible unused</span><br><span class="line">         ~                        ~</span><br><span class="line">         | Command line           | (Can also be below the X+10000 mark)</span><br><span class="line">X+10000  +------------------------+</span><br><span class="line">         | Stack/heap             | For use by the kernel real-mode code.</span><br><span class="line">X+08000  +------------------------+</span><br><span class="line">         | Kernel setup           | The kernel real-mode code.</span><br><span class="line">         | Kernel boot sector     | The kernel legacy boot sector.</span><br><span class="line">       X +------------------------+</span><br><span class="line">         | Boot loader            | &lt;- Boot sector entry point 0x7C00</span><br><span class="line">001000   +------------------------+</span><br><span class="line">         | Reserved for MBR/BIOS  |</span><br><span class="line">000800   +------------------------+</span><br><span class="line">         | Typically used by MBR  |</span><br><span class="line">000600   +------------------------+</span><br><span class="line">         | BIOS use only          |</span><br><span class="line">000000   +------------------------+</span><br></pre></td></tr></table></figure>
+
+<h2 id="由内核发力"><a href="#由内核发力" class="headerlink" title="由内核发力"></a>由内核发力</h2><h3 id="内核设置"><a href="#内核设置" class="headerlink" title="内核设置"></a>内核设置</h3><p>此时内核已经被引导进入内存中，虽然控制权已经转交给内核，但是并未真正的运行起来，需要进行一系列的设置</p>
+<p>内核设置代码的起点是 <code>/arch/x86/boot/header.S</code>，原先 kernel 会自带 bootloader 进行启动，但是现在仅输出错误信息</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">	.global bootsect_start</span><br><span class="line">bootsect_start:</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ifdef CONFIG_EFI_STUB</span></span><br><span class="line"><span class="meta prompt_">	# </span><span class="language-bash"><span class="string">&quot;MZ&quot;</span>, MS-DOS header</span></span><br><span class="line">	.word	MZ_MAGIC</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">endif</span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">	# </span><span class="language-bash">Normalize the start address</span></span><br><span class="line">	ljmp	$BOOTSEG, $start2</span><br><span class="line"></span><br><span class="line">start2:</span><br><span class="line">	movw	%cs, %ax</span><br><span class="line">	movw	%ax, %ds</span><br><span class="line">	movw	%ax, %es</span><br><span class="line">	movw	%ax, %ss</span><br><span class="line">	xorw	%sp, %sp</span><br><span class="line">	sti</span><br><span class="line">	cld</span><br><span class="line"></span><br><span class="line">	movw	$bugger_off_msg, %si</span><br><span class="line"></span><br><span class="line">bugger_off_msg:</span><br><span class="line">	.ascii	&quot;Use a boot loader.\r\n&quot;</span><br><span class="line">	.ascii	&quot;\n&quot;</span><br><span class="line">	.ascii	&quot;Remove disk and press any key to reboot...\r\n&quot;</span><br><span class="line">	.byte	0</span><br></pre></td></tr></table></figure>
+<p>现在将会从 <code>_start</code> 开始</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">	# </span><span class="language-bash">offset 512, entry point // 0x200 偏移处</span></span><br><span class="line"></span><br><span class="line">	.globl	_start</span><br><span class="line">_start:</span><br><span class="line">        .byte	0xeb		# short (2-byte) jump</span><br><span class="line">        .byte	start_of_setup-1f // 跳转到 setup 阶段</span><br><span class="line">1: // setup header 结构</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">	.section &quot;.entrytext&quot;, &quot;ax&quot;</span><br><span class="line">start_of_setup:</span><br></pre></td></tr></table></figure>
+<p>这里需要了解到，在从 <code>GRUB</code> 跳转到 <code>_start</code> 时，设置的代码如下，即将 CS 代码段偏移增加 <code>0x20</code></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">state.gs = state.fs = state.es = state.ds = state.ss = segment;</span><br><span class="line">state.cs = segment + 0x20;</span><br></pre></td></tr></table></figure>
+
+<h3 id="start-of-setup"><a href="#start-of-setup" class="headerlink" title="start_of_setup"></a>start_of_setup</h3><p><strong>段寄存器设置</strong><br>首先对段寄存器进行设置，强制 ES 段与 DS 段相同</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Force %es = %ds</span></span><br><span class="line">	movw	%ds, %ax</span><br><span class="line">	movw	%ax, %es</span><br><span class="line">	cld</span><br></pre></td></tr></table></figure>
+<p>随后对 SS 段进行设置，具体操作如下：</p>
+<ul>
+<li>首先判断 SS 段与 DS ES 段是否相同，并将 SP 寄存器放在 dx 寄存器内<ul>
+<li>如果相同则跳转到 2f，对 dx 即 sp 寄存器进行对齐操作，<ul>
+<li>如果失败则将 sp 设置为 <code>0xfffc</code></li>
+<li>如果正确结束</li>
+</ul>
+</li>
+<li>如果不相同则构造新的栈，首先将 <code>_end</code> 设置给 dx，并判断是否设置 <code>CAN_USE_HEAP</code><ul>
+<li>如果设置，则将 heap_end_ptr 置于 dx 寄存器，加上 <code>STACK_SIZE</code></li>
+<li>如果没有设置，则将 dx 直接加上 <code>STACK_SIZE</code><figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">	movw	%ss, %dx</span><br><span class="line">	cmpw	%ax, %dx	# %ds == %ss?</span><br><span class="line">	movw	%sp, %dx</span><br><span class="line">	je	2f		# -&gt; assume %sp is reasonably set</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">	# </span><span class="language-bash">Invalid %ss, make up a new stack</span></span><br><span class="line">	movw	$_end, %dx</span><br><span class="line">	testb	$CAN_USE_HEAP, loadflags</span><br><span class="line">	jz	1f</span><br><span class="line">	movw	heap_end_ptr, %dx</span><br><span class="line">1:	addw	$STACK_SIZE, %dx</span><br><span class="line">	jnc	2f</span><br><span class="line">	xorw	%dx, %dx	# Prevent wraparound</span><br><span class="line"></span><br><span class="line">2:	# Now %dx should point to the end of our stack space</span><br><span class="line">	andw	$~3, %dx	# dword align (might as well...)</span><br><span class="line">	jnz	3f</span><br><span class="line">	movw	$0xfffc, %dx	# Make sure we&#x27;re not zero</span><br><span class="line">3:	movw	%ax, %ss</span><br><span class="line">	movzwl	%dx, %esp	# Clear upper half of %esp</span><br><span class="line">	sti			# Now we should have a working stack</span><br></pre></td></tr></table></figure>
+将 DS 段与 CS 段置为同值<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">	pushw	%ds</span><br><span class="line">	pushw	$6f</span><br><span class="line">	lretw</span><br><span class="line">6:</span><br></pre></td></tr></table></figure>
+此时，如果 SS &#x3D;&#x3D; DS，目前的堆栈情况为：<br><img src="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205132021604.png"><br>如果 SS !&#x3D; DS，且 设置 USE_HEAP，则堆栈情况为：<br><img src="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205132023418.png"><br>如果 SS !&#x3D; DS，且不设置 USE_HEAP，则堆栈情况为：<br><img src="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205132024069.png"></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>BSS 段设置</strong><br>BSS 段主要用来存放没有被初始化的静态变量，对于此段的内存，linux 将会对齐进行清零</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">movw    $__bss_start, %di</span><br><span class="line">movw    $_end+3, %cx</span><br><span class="line">xorl    %eax, %eax</span><br><span class="line">subw    %di, %cx</span><br><span class="line">shrw    $2, %cx</span><br><span class="line">rep; stosl</span><br></pre></td></tr></table></figure>
+<p>代码执行完毕后，将对得到如下BSS段<br><img src="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205132027504.png"></p>
+<p>紧接着就跳转到 <code>main</code> 函数执行 C 代码</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Jump to C code (should not <span class="built_in">return</span>)</span></span><br><span class="line">	calll	main</span><br></pre></td></tr></table></figure>
+
+<h2 id="准备启动"><a href="#准备启动" class="headerlink" title="准备启动"></a>准备启动</h2><h3 id="保护模式"><a href="#保护模式" class="headerlink" title="保护模式"></a>保护模式</h3><p>首先简要介绍一下保护模式和实模式的区别，因为在64位操作系统之前，内核必须切换到保护模式才能运行</p>
+<p>保护模式的主要改变：</p>
+<ul>
+<li>将实模式的20根地址线转换为32位，系统可以访问多达 4G 的地址空间</li>
+<li>引入内存分页管理方法</li>
+</ul>
+<p>在保护模式中，内存段的大小和位置使用 <code>段描述符</code> 进行描述，通过段描述符可以知道段的属性和状态，段描述符的主要结构如下，每个描述符的长度是 64 位，均存储在 <code>全局描述符表 GDT</code> 中</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">31          24        19      16              7            0</span><br><span class="line">------------------------------------------------------------</span><br><span class="line">|             | |B| |A|       | |   | |0|E|W|A|            |</span><br><span class="line">| BASE 31:24  |G|/|L|V| LIMIT |P|DPL|S|  TYPE | BASE 23:16 | 4</span><br><span class="line">|             | |D| |L| 19:16 | |   | |1|C|R|A|            |</span><br><span class="line">------------------------------------------------------------</span><br><span class="line">|                             |                            |</span><br><span class="line">|        BASE 15:0            |       LIMIT 15:0           | 0</span><br><span class="line">|                             |                            |</span><br><span class="line">------------------------------------------------------------</span><br></pre></td></tr></table></figure>
+
+<p>全局描述符表 在内存中的位置不定，其地址保存在 <code>GDTR</code> 特殊寄存器中，汇编代码大概是 <code>lgdt gdt</code>，GDTR 是 48 位寄存器，基址 32 位，大小 16 位。</p>
+<p>而此时所谓的段寄存器 DS SS ES 等存储的均是 <code>段选择子</code>，其结构如下，即 CPU 通过以下步骤找到物理地址：段选择子-&gt;段描述符-&gt;段基址+偏移</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-----------------------------</span><br><span class="line">|       Index    | TI | RPL |</span><br><span class="line">-----------------------------</span><br><span class="line">GDT 段描述符索引号 ｜GDT or LDT ｜ 请求优先级</span><br></pre></td></tr></table></figure>
+
+<p>从实模式进入保护模式，需要执行以下操作：</p>
+<ul>
+<li>禁止中断发生</li>
+<li>使用命令将 GDT 装入 GDTR</li>
+<li>设置 CR0 PE 位为 1，使寄存器进入保护模式</li>
+<li>跳转执行保护模式代码</li>
+</ul>
+<h3 id="main"><a href="#main" class="headerlink" title="main"></a>main</h3><p>可以提前看到，此处在实模式下内核基本配置完成后，对硬件的一些信息获取，如 CPU 内存 键盘<br><strong>copy_boot_params</strong><br>此处主要是将前面定义的 <code>struct setup_header hdr</code> 拷贝到 <code>boot params</code> 中<br><strong>console_init</strong><br>初始化命令行，通过分析 <code>earlyprintk</code>，对相应串口进行初始化<br><strong>init_heap</strong><br>在前面设置过程中对堆栈和BSS进行初始化后，内核需要初始化全局堆，即此函数得目标，主要流程是通过计算 <code>stack_end</code> 和 <code>heap_end</code> 对堆进行初始化<br><strong>validate_cpu</strong><br>此处对 CPU 的类型进行检查，我们只需要了解：</p>
+<ul>
+<li>如果 CPU 标志为 64 位，则设置 long mode</li>
+<li>根据制造商的不同，设置不同的CPU选项</li>
+</ul>
+<p><strong>set_bios_mode</strong><br>告知 BIOS 我们将要运行在什么CPU模式下<br><strong>detect_memory</strong><br>内存侦测主要是得到当前内存的使用分布，通常使用多种编程接口<br><strong>keyboard_init</strong><br>通过 0x16 中断获取键盘状态并设置按键检测频率<br><strong>系统参数查询</strong><br>系统参数查询，这里主要有：</p>
+<ul>
+<li>ist</li>
+<li>apm_bios</li>
+<li>edd</li>
+</ul>
+<p><strong>set_video</strong><br>依旧是通过之前的 <code>setup hdr</code> 数据结构进行获取初始参数，通过对内存 heap 进行读写</p>
+<p><strong>go_to_protected_mode</strong><br>此处将进入保护模式，我们主要关注：</p>
+<ol>
+<li>setup_idt 设置中断描述符表 <code>lidtl null_idt</code></li>
+<li>setup_gdt 设置全局描述符表 <code>lgdtl gdt</code></li>
+<li>protected_mode_jump 保护模式跳转</li>
+</ol>
+<p>保护模式下代码的第一步会重置所有段寄存器（CS 除外），将他们指向数据段，并将通用寄存器清零（eax 除外）</p>
+<h2 id="过渡-64-位模式"><a href="#过渡-64-位模式" class="headerlink" title="过渡 64 位模式"></a>过渡 64 位模式</h2><p>在 x86 linux 内核引导协议中写到<br><code>当使用 bzImage 时，保护模式下内核被重定位至 0x100000 处</code></p>
+<p><strong>32 位入口点</strong><br>源码位置：<code>/arch/x86/boot/compressed/head_64.S</code></p>
+<p>为什么称之为 compressed，因为 <code>bzImage</code> 是由 <code>vmlinux + 头文件 + 内核启动代码</code> 通过 gzip 压缩得来，因此源码主要进行切换模式的准备工作，在进入长模式后再解压内核</p>
+<p><strong>计算重定位地址</strong></p>
+<p>在必要的时候计算解压缩之后的地址，默认的内核基地址由内核编译项 <code>CONFIG_PHYSICAL_START</code> 所确定，其默认值为 <code>0x1000000</code></p>
+<p><strong>长模式</strong><br>长模式是 X86_64 的原生模式，为了切换，需要进行一下操作：</p>
+<ul>
+<li>启用 PAE</li>
+<li>建立页表并将顶级页表地址放入 cr3 寄存器</li>
+<li>启用 EFER.LME</li>
+<li>启用分页 - 设置 <code>cr0</code> 寄存器的 <code>PG</code> 和 <code>PE</code> 启动分页</li>
+</ul>
+<p><strong>初期页表初始化</strong><br>Linux 内核使用 4 级页表，可以构建初始 4G 页表，映射 4G 内存</p>
+<ul>
+<li>4 级页映射表 - 1</li>
+<li>页目录指针表 - 1</li>
+<li>页目录表 - 4</li>
+</ul>
+<h2 id="内核解压缩-加载地址随机化"><a href="#内核解压缩-加载地址随机化" class="headerlink" title="内核解压缩 - 加载地址随机化"></a>内核解压缩 - 加载地址随机化</h2><p>源码入口：<code>arch/x86/boot/compressed/misc.c/extract_kernel() -&gt; choose_random_location</code></p>
+<p>可以参考：<code>/Documentation/x86/x86_64/mm.rst</code><br>首先对一些配置的默认设置进行分析</p>
+<ul>
+<li>在默认情况下，如果 X86_64 开启 4 级页表，则页的默认偏移基址为 <code>0xffff888000000000</code>，页的对齐大小必须是处于 <code>0x200000</code> 到 <code>0x1000000，即</code> 2M 到 16M，且是 <code>0x200000</code> 的倍数</li>
+<li>内核映射的基础地址为 <code>0xffffffff80000000</code>，如果启用 KASLR 则内核镜像大小为 1G，否则为 512M<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">define __PAGE_OFFSET_BASE_L5	_AC(0xff11000000000000, UL)</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">define __PAGE_OFFSET_BASE_L4	_AC(0xffff888000000000, UL)</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">define __START_KERNEL_map	_AC(0xffffffff80000000, UL)</span></span><br><span class="line"></span><br><span class="line">config PHYSICAL_START</span><br><span class="line">	hex &quot;Physical address where the kernel is loaded&quot; if (EXPERT || CRASH_DUMP)</span><br><span class="line">	default &quot;0x1000000&quot;</span><br><span class="line"></span><br><span class="line">config PHYSICAL_ALIGN</span><br><span class="line">	hex &quot;Alignment value to which kernel should be aligned&quot;</span><br><span class="line">	default &quot;0x200000&quot;</span><br><span class="line">	range 0x2000 0x1000000 if X86_32</span><br><span class="line">	range 0x200000 0x1000000 if X86_64</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ifdef CONFIG_RANDOMIZE_BASE</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">define KERNEL_IMAGE_SIZE	(1024 * 1024 * 1024) // 1G</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="keyword">else</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">define KERNEL_IMAGE_SIZE	(512 * 1024 * 1024) // 512M</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">endif</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>接下来分析选取随机化的流程：</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">// 判断是否传入 nokaslr 信号</span><br><span class="line">if (cmdline_find_option_bool(&quot;nokaslr&quot;)) &#123;</span><br><span class="line">    warn(&quot;KASLR disabled: &#x27;nokaslr&#x27; on cmdline.&quot;);</span><br><span class="line">    return;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 对内存进行限制</span><br><span class="line">if (IS_ENABLED(CONFIG_X86_32))</span><br><span class="line">    mem_limit = KERNEL_IMAGE_SIZE;</span><br><span class="line">else</span><br><span class="line">    mem_limit = MAXMEM;</span><br><span class="line"></span><br><span class="line">// 记录非安全区域，在随机过程中进行规避</span><br><span class="line">mem_avoid_init(input, input_size, *output);</span><br><span class="line"></span><br><span class="line">// 物理地址随机化</span><br><span class="line">random_addr = find_random_phys_addr(min_addr, output_size);</span><br><span class="line"></span><br><span class="line">// 虚拟地址随机化</span><br><span class="line">random_addr = find_random_virt_addr(LOAD_PHYSICAL_ADDR, output_size);</span><br></pre></td></tr></table></figure>
+<p>寻找随机物理地址和随机虚拟地址的大致流程如下：</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">// 使用 efi 或 e820 进行搜索满足条件的分配区并记录在 slot_area 数组中</span><br><span class="line">if (!process_efi_entries(minimum, image_size))</span><br><span class="line">		process_e820_entries(minimum, image_size);</span><br><span class="line"></span><br><span class="line">// 随机获取 slot area</span><br><span class="line">slots_fetch_random();</span><br><span class="line">    // 使用 RDRAND / RDTSC / i8254 进行随机数获取</span><br><span class="line">    - slot = kaslr_get_random_long(&quot;Physical&quot;) % slot_max;</span><br><span class="line">    // 通过逐步减少的方式确定 slot</span><br><span class="line">	for (i = 0; i &lt; slot_area_index; i++) &#123;</span><br><span class="line">		if (slot &gt;= slot_areas[i].num) &#123;</span><br><span class="line">			slot -= slot_areas[i].num;</span><br><span class="line">			continue;</span><br><span class="line">		&#125;</span><br><span class="line">		return slot_areas[i].addr + ((u64)slot * CONFIG_PHYSICAL_ALIGN);</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/13/Command-Line-Guide/" rel="prev" title="Command Line Guide - CLI">
+      <i class="fa fa-chevron-left"></i> Command Line Guide - CLI
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/13/Linux-Kernel-%E6%8C%96%E7%9F%BF%E4%B9%8B%E6%97%85/" rel="next" title="Linux Kernel 挖矿之旅">
+      Linux Kernel 挖矿之旅 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E-CPU-%E5%BC%80%E5%A7%8B"><span class="nav-number">1.</span> <span class="nav-text">从 CPU 开始</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E7%94%B5%E5%90%AF%E5%8A%A8%E5%A4%8D%E4%BD%8D"><span class="nav-number">1.1.</span> <span class="nav-text">通电启动复位</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BIOS-%E6%90%9C%E7%B4%A2%E5%BC%95%E5%AF%BC%E7%A8%8B%E5%BA%8F"><span class="nav-number">1.2.</span> <span class="nav-text">BIOS 搜索引导程序</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%B1%E5%86%85%E6%A0%B8%E5%8F%91%E5%8A%9B"><span class="nav-number">2.</span> <span class="nav-text">由内核发力</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E8%AE%BE%E7%BD%AE"><span class="nav-number">2.1.</span> <span class="nav-text">内核设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#start-of-setup"><span class="nav-number">2.2.</span> <span class="nav-text">start_of_setup</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%90%AF%E5%8A%A8"><span class="nav-number">3.</span> <span class="nav-text">准备启动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F"><span class="nav-number">3.1.</span> <span class="nav-text">保护模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#main"><span class="nav-number">3.2.</span> <span class="nav-text">main</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%87%E6%B8%A1-64-%E4%BD%8D%E6%A8%A1%E5%BC%8F"><span class="nav-number">4.</span> <span class="nav-text">过渡 64 位模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E8%A7%A3%E5%8E%8B%E7%BC%A9-%E5%8A%A0%E8%BD%BD%E5%9C%B0%E5%9D%80%E9%9A%8F%E6%9C%BA%E5%8C%96"><span class="nav-number">5.</span> <span class="nav-text">内核解压缩 - 加载地址随机化</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="emiya"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">emiya</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="">
+    <a target="_blank" class="social-link" href="/atom.xml" style="color: burlywood;">
+      <span class="icon">
+        <i class="fa fa-rss"></i>
+      </span>
+      <span class="label">RSS</span>
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/darenfy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;darenfy" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:darenfy@gmail.com" title="E-Mail → mailto:darenfy@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">emiya</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
