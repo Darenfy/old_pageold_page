@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"darenfy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="学习构建 Linux 设备驱动程序系列">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux设备驱动程序之基础知识">
+<meta property="og:url" content="https://darenfy.github.io/2022/05/24/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/index.html">
+<meta property="og:site_name" content="Emiyaのblog">
+<meta property="og:description" content="学习构建 Linux 设备驱动程序系列">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-05-24T02:32:09.000Z">
+<meta property="article:modified_time" content="2022-05-24T02:32:09.000Z">
+<meta property="article:author" content="emiya">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://darenfy.github.io/2022/05/24/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux设备驱动程序之基础知识 | Emiyaのblog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Emiyaのblog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Emiyaのblog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">11</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">20</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://darenfy.github.io/2022/05/24/Linux%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="emiya">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Emiyaのblog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux设备驱动程序之基础知识
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-05-24 10:32:09" itemprop="dateCreated datePublished" datetime="2022-05-24T10:32:09+08:00">2022-05-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kernel/" itemprop="url" rel="index"><span itemprop="name">Kernel</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kernel/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">学习构建 Linux 设备驱动程序系列</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <span id="more"></span>
+
+<p>本文主要参考《Linux设备驱动程序》一书</p>
+<h2 id="设备和模块的分类"><a href="#设备和模块的分类" class="headerlink" title="设备和模块的分类"></a>设备和模块的分类</h2><p>以 Linux 方式看待设备一般分为 3 种基本设备类型，模块常常实现其中一种</p>
+<ul>
+<li><p>字符设备<br>可以当作字节流存取的设备（如同一个文件），字符驱动负责实现其行为，一般至少实现 open，close、read、write 系统调用。标准例子：文本控制台 <code>/dev/console</code> 串口 <code>/dev/ttyS0</code>。大部分字符设备仅仅是数据通道，只能顺序存取，但是可以在里面进行偏移</p>
+</li>
+<li><p>块设备<br>通过 <code>/dev</code> 目录的文件系统节点进行存取，在 Linux 系统中允许像字符设备一样一次传输任意数目的字节</p>
+</li>
+<li><p>网络接口<br>任何网络事务都通过接口来进行，即能够与其他主机交换数据的设备。网络接口负责发送和接受数据报文，网络设备常常设计成处理报文的发送和发送，而非流，并且网络驱动对连接一无所知，只处理报文。<br>网络接口不像字符设备和块设备一样映射到文件系统上，但是对接口的存取方式仍然是通过分配名称，如 ens33，内核与网络设备驱动的通讯不用 read 和 write，内核调用和报文传递相关的函数</p>
+</li>
+</ul>
+<h2 id="构建和运行模块-HELLO-WORLD"><a href="#构建和运行模块-HELLO-WORLD" class="headerlink" title="构建和运行模块 HELLO WORLD"></a>构建和运行模块 HELLO WORLD</h2><p>构建最简单的打印消息模块<br><strong>Makefile</strong></p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">ifeq ($(KERNELRELEASE),)</span><br><span class="line"></span><br><span class="line">	KERNELDIR ?= /lib/modules/$(shell uname -r)/build // 内核源码目录</span><br><span class="line">	PWD := $(shell pwd) // 编译目录</span><br><span class="line"></span><br><span class="line">modules:</span><br><span class="line"><span class="meta prompt_">	$</span><span class="language-bash">(MAKE) -C $(KERNELDIR) M=$(PWD) modules</span></span><br><span class="line"></span><br><span class="line">modules_install:</span><br><span class="line"><span class="meta prompt_">	$</span><span class="language-bash">(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install</span></span><br><span class="line"></span><br><span class="line">clean:</span><br><span class="line"><span class="meta prompt_">	$</span><span class="language-bash">(MAKE) -C $(KERNELDIR) M=$(PWD) clean</span></span><br><span class="line"></span><br><span class="line">else</span><br><span class="line">	obj-m := hello.o</span><br><span class="line">endif</span><br></pre></td></tr></table></figure>
+<p><strong>hello.c</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/init.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/module.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">hello_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	printk(KERN_ALERT <span class="string">&quot;Hello, world\n&quot;</span>);    <span class="comment">// 以 KERN_ALERT 登记打印信息</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">hello_exit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	printk(KERN_ALERT <span class="string">&quot;Goodbye, cruel world\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">module_init(hello_init); <span class="comment">// 初始化模块</span></span><br><span class="line">module_exit(hello_exit); <span class="comment">// 推出模块</span></span><br></pre></td></tr></table></figure>
+<p>构建、安装及卸载</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make modules                      // 构建模块</span></span><br><span class="line">make -C /lib/modules/5.4.0-109-generic/build M=/home/embeded/LDD/fixed/misc-modules modules</span><br><span class="line">make[1]: Entering directory &#x27;/usr/src/linux-headers-5.4.0-109-generic&#x27;</span><br><span class="line">  CC [M]  /home/embeded/LDD/fixed/misc-modules/hello.o</span><br><span class="line">  Building modules, stage 2.</span><br><span class="line">  MODPOST 1 modules</span><br><span class="line">WARNING: modpost: missing MODULE_LICENSE() in /home/embeded/LDD/fixed/misc-modules/hello.o</span><br><span class="line">see include/linux/module.h for more information</span><br><span class="line">  CC [M]  /home/embeded/LDD/fixed/misc-modules/hello.mod.o</span><br><span class="line">  LD [M]  /home/embeded/LDD/fixed/misc-modules/hello.ko</span><br><span class="line">make[1]: Leaving directory &#x27;/usr/src/linux-headers-5.4.0-109-generic&#x27;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">ls</span></span></span><br><span class="line">hello.c   hello.mod    hello.mod.o  Makefile       Module.symvers</span><br><span class="line">hello.ko  hello.mod.c  hello.o      modules.order</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">sudo insmod hello.ko              // 安装模块</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">lsmod | grep hello                // 查看模块</span></span><br><span class="line">hello                  16384  0</span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">sudo rmmod hello.ko               // 卸载模块</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">dmesg                             // 查看 KERNEL 信息</span></span><br><span class="line">[412294.031622] Hello, world</span><br><span class="line">[412340.803510] Goodbye, cruel world</span><br></pre></td></tr></table></figure>
+
+<h2 id="内核模块"><a href="#内核模块" class="headerlink" title="内核模块"></a>内核模块</h2><p><strong>内核模块 vs 应用程序</strong><br>每个内核模块只注册自己以便于服务将来的请求，其初始化函数立刻终止</p>
+<p><strong>模块可以注册哪些设备</strong><br>模块可以注册很多不同设施，包括不同类型的设备，如串口、&#x2F;proc 文件、执行域</p>
+<p><strong>用户空间构建模块</strong><br>用户空间驱动的好处：</p>
+<ol>
+<li>拥有完整的 C 库</li>
+<li>可以在驱动代码上运行常用调试器</li>
+<li>能够简单的杀掉用户空间驱动</li>
+<li>用户内存可交换，非运行不会占用 RAM</li>
+</ol>
+<p>如 USB 驱动</p>
+<p>用户空间驱动的缺点：</p>
+<ol>
+<li>无法使用中断</li>
+<li>只能通过内存映射 &#x2F;dev&#x2F;mem 使用 DMA </li>
+<li>响应时间慢</li>
+<li>重要设备不能在用户空间处理</li>
+</ol>
+<h2 id="字符驱动"><a href="#字符驱动" class="headerlink" title="字符驱动"></a>字符驱动</h2><h3 id="字符设备注册"><a href="#字符设备注册" class="headerlink" title="字符设备注册"></a>字符设备注册</h3><p>设备编号</p>
+<p>主设备编号标识设备相连的驱动，副设备编号被决定引用哪个设备</p>
+<p>分配和释放设备编号</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">int register_chrdev_region(dev_t first, unsigned int count, const char *name)</span><br><span class="line"></span><br><span class="line">- first 起始设备编号，次编号部分常常是 0</span><br><span class="line">- count 请求的连续设备编号的总数</span><br></pre></td></tr></table></figure>
+
+<p>注册字符设备的方法</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">include &lt;linux/fs.h&gt;</span></span><br><span class="line">int register_chrdev(unsigned int major, const char * name, const struct file_operations *fops)</span><br><span class="line">- major 主设备编号</span><br><span class="line">- name 设备名称</span><br><span class="line">- fops 文件操作函数</span><br><span class="line"></span><br><span class="line">如果主设备号为 0 则会分配一个主设备号</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="创建可读可写-proc-入口"><a href="#创建可读可写-proc-入口" class="headerlink" title="创建可读可写 proc 入口"></a>创建可读可写 proc 入口</h3><figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">static inline struct proc_dir_entry *proc_create(</span><br><span class="line">	const char *name, umode_t mode, struct proc_dir_entry *parent,</span><br><span class="line">	const struct file_operations *proc_fops)</span><br><span class="line"></span><br><span class="line">- name // 入口点名称</span><br><span class="line">- mode // 入口文件访问模式，也可以理解为权限</span><br><span class="line">- parent // 父入口点</span><br><span class="line">- proc_fops // proc 入口点文件操作结构</span><br><span class="line"></span><br><span class="line">// 文件操作接口，可以只使用部分</span><br><span class="line">struct file_operations &#123;</span><br><span class="line">	struct module *owner;</span><br><span class="line">	loff_t (*llseek) (struct file *, loff_t, int);</span><br><span class="line">	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);</span><br><span class="line">	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);</span><br><span class="line">	ssize_t (*aio_read) (struct kiocb *, const struct iovec *, unsigned long, loff_t);</span><br><span class="line">	ssize_t (*aio_write) (struct kiocb *, const struct iovec *, unsigned long, loff_t);</span><br><span class="line">	int (*readdir) (struct file *, void *, filldir_t);</span><br><span class="line">	unsigned int (*poll) (struct file *, struct poll_table_struct *);</span><br><span class="line">	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);</span><br><span class="line">	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);</span><br><span class="line">	int (*mmap) (struct file *, struct vm_area_struct *);</span><br><span class="line">	int (*open) (struct inode *, struct file *);</span><br><span class="line">	int (*flush) (struct file *, fl_owner_t id);</span><br><span class="line">	int (*release) (struct inode *, struct file *);</span><br><span class="line">	int (*fsync) (struct file *, loff_t, loff_t, int datasync);</span><br><span class="line">	int (*aio_fsync) (struct kiocb *, int datasync);</span><br><span class="line">	int (*fasync) (int, struct file *, int);</span><br><span class="line">	int (*lock) (struct file *, int, struct file_lock *);</span><br><span class="line">	ssize_t (*sendpage) (struct file *, struct page *, int, size_t, loff_t *, int);</span><br><span class="line">	unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);</span><br><span class="line">	int (*check_flags)(int);</span><br><span class="line">	int (*flock) (struct file *, int, struct file_lock *);</span><br><span class="line">	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, loff_t *, size_t, unsigned int);</span><br><span class="line">	ssize_t (*splice_read)(struct file *, loff_t *, struct pipe_inode_info *, size_t, unsigned int);</span><br><span class="line">	int (*setlease)(struct file *, long, struct file_lock **);</span><br><span class="line">	long (*fallocate)(struct file *file, int mode, loff_t offset,</span><br><span class="line">			  loff_t len);</span><br><span class="line">	int (*show_fdinfo)(struct seq_file *m, struct file *f);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>代码</strong><br>创建文件在 <code>/proc</code> 下, </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proc_create(<span class="string">&quot;hello&quot;</span>, <span class="number">0</span>, <span class="literal">NULL</span>, &amp;proc_fops);</span><br></pre></td></tr></table></figure>
+
+<p>构建相应的文件操作结构</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> <span class="title">proc_fops</span> =</span> &#123;</span><br><span class="line">    read:    read_proc</span><br><span class="line">    write:  write_proc</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>添加相应的文件处理函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ssize_t</span> <span class="title function_">write_proc</span><span class="params">(<span class="keyword">struct</span> file* filp, <span class="type">const</span> <span class="type">char</span>* buf, <span class="type">size_t</span> count, <span class="type">loff_t</span> * offp)</span></span><br><span class="line">&#123;</span><br><span class="line">    copy_from_user(msg, buf, count);</span><br><span class="line">    printk(KERN_INFO <span class="string">&quot;In write&quot;</span>);</span><br><span class="line">    len = count;</span><br><span class="line">    temp = len;</span><br><span class="line">    <span class="keyword">return</span> count;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">ssize_t</span> <span class="title function_">read_proc</span><span class="params">(<span class="keyword">struct</span> file* filp, <span class="type">char</span> *buf, <span class="type">size_t</span> count, <span class="type">loff_t</span> *offp)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (count &gt; temp)</span><br><span class="line">        count = temp;</span><br><span class="line">    temp = temp-count;</span><br><span class="line">    copy_to_user(buf, msg, count);</span><br><span class="line">    <span class="keyword">if</span> (count == <span class="number">0</span>)</span><br><span class="line">        temp = len;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> count;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">create_new_proc_entry</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    proc_create(<span class="string">&quot;hello&quot;</span>, <span class="number">0</span>, <span class="literal">NULL</span>, &amp;proc_fops);</span><br><span class="line">    msg = kmalloc(<span class="number">10</span>*<span class="keyword">sizeof</span>(<span class="type">char</span>), GFP_KERNEL);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>添加初始化和清除模块函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">proc_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    create_new_proc_entry();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">proc_cleanup</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    remove_proc_entry(<span class="string">&quot;hello&quot;</span>, <span class="literal">NULL</span>);</span><br><span class="line">    kfree(msg);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/17/AndroidKernelExploitationPlayground/" rel="prev" title="AndroidKernelExploitationPlayground">
+      <i class="fa fa-chevron-left"></i> AndroidKernelExploitationPlayground
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/26/ChCore-Lab1-%E6%9C%BA%E5%99%A8%E5%90%AF%E5%8A%A8/" rel="next" title="ChCore Lab1 机器启动">
+      ChCore Lab1 机器启动 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E5%A4%87%E5%92%8C%E6%A8%A1%E5%9D%97%E7%9A%84%E5%88%86%E7%B1%BB"><span class="nav-number">1.</span> <span class="nav-text">设备和模块的分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%84%E5%BB%BA%E5%92%8C%E8%BF%90%E8%A1%8C%E6%A8%A1%E5%9D%97-HELLO-WORLD"><span class="nav-number">2.</span> <span class="nav-text">构建和运行模块 HELLO WORLD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97"><span class="nav-number">3.</span> <span class="nav-text">内核模块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E9%A9%B1%E5%8A%A8"><span class="nav-number">4.</span> <span class="nav-text">字符驱动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E6%B3%A8%E5%86%8C"><span class="nav-number">4.1.</span> <span class="nav-text">字符设备注册</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%8F%AF%E8%AF%BB%E5%8F%AF%E5%86%99-proc-%E5%85%A5%E5%8F%A3"><span class="nav-number">4.2.</span> <span class="nav-text">创建可读可写 proc 入口</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="emiya"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">emiya</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="">
+    <a target="_blank" class="social-link" href="/atom.xml" style="color: burlywood;">
+      <span class="icon">
+        <i class="fa fa-rss"></i>
+      </span>
+      <span class="label">RSS</span>
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/darenfy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;darenfy" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:darenfy@gmail.com" title="E-Mail → mailto:darenfy@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">emiya</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

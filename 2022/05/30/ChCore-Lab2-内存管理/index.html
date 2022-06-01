@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"darenfy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="ChCore Lab Courses">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ChCore Lab2 内存管理">
+<meta property="og:url" content="https://darenfy.github.io/2022/05/30/ChCore-Lab2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="Emiyaのblog">
+<meta property="og:description" content="ChCore Lab Courses">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205311559912.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205311616954.png">
+<meta property="article:published_time" content="2022-05-30T03:28:42.000Z">
+<meta property="article:modified_time" content="2022-05-30T03:28:42.000Z">
+<meta property="article:author" content="emiya">
+<meta property="article:tag" content="AArch64">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205311559912.png">
+
+<link rel="canonical" href="https://darenfy.github.io/2022/05/30/ChCore-Lab2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>ChCore Lab2 内存管理 | Emiyaのblog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Emiyaのblog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Emiyaのblog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">11</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">20</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://darenfy.github.io/2022/05/30/ChCore-Lab2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="emiya">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Emiyaのblog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ChCore Lab2 内存管理
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-05-30 11:28:42" itemprop="dateCreated datePublished" datetime="2022-05-30T11:28:42+08:00">2022-05-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kernel/" itemprop="url" rel="index"><span itemprop="name">Kernel</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kernel/ARM/" itemprop="url" rel="index"><span itemprop="name">ARM</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">ChCore Lab Courses</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <span id="more"></span>
+
+<h1 id="物理内存管理"><a href="#物理内存管理" class="headerlink" title="物理内存管理"></a>物理内存管理</h1><h2 id="物理内存布局"><a href="#物理内存布局" class="headerlink" title="物理内存布局"></a>物理内存布局</h2><h3 id="问题-1"><a href="#问题-1" class="headerlink" title="问题 1"></a>问题 1</h3><p><strong>请简单解释，在哪个文件或代码段中指定了 ChCore 物理内存布局。你可以从两个方面回答这个问题: 编译阶段和运行时阶段。</strong></p>
+<p>在编译阶段，主要使用的是连接器脚本进行确认：</p>
+<ul>
+<li><code>bootloader</code> 对应 <code>kernel.img</code> 的 <code>init</code> 段，<code>img_start</code> 即 <code>init</code> 被硬编码为 <code>0x80000</code>，其范围即为整个 <code>init</code> 段的范围</li>
+<li>内核 对应 <code>kernel.img</code> 的 <code>.text</code> <code>.rodata</code> 等程序段，末尾即 <code>img_end</code></li>
+<li><code>Reserved</code> 属于是不使用区域，访问引发异常</li>
+</ul>
+<p>在运行时阶段，分配过程即 <code>Memory Layout</code> 由 <code>mm.c</code> 决定</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> PHYSICAL_MEM_START (24*1024*1024)	<span class="comment">//24M</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> START_VADDR phys_to_virt(PHYSICAL_MEM_START)	<span class="comment">//24M</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NPAGES (128*1000)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PHYSICAL_MEM_END (PHYSICAL_MEM_START+NPAGES*BUDDY_PAGE_SIZE)</span></span><br><span class="line"></span><br><span class="line"><span class="type">vaddr_t</span> free_mem_start = <span class="number">0</span>;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">page_meta_start</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line">u64 npages = <span class="number">0</span>;</span><br><span class="line">u64 start_vaddr = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 内存对其</span></span><br><span class="line">free_mem_start =</span><br><span class="line">    phys_to_virt(ROUND_UP((<span class="type">vaddr_t</span>) (&amp;img_end), PAGE_SIZE));</span><br><span class="line">npages = NPAGES;</span><br><span class="line">start_vaddr = START_VADDR;</span><br><span class="line">kdebug(<span class="string">&quot;[CHCORE] mm: free_mem_start is 0x%lx, free_mem_end is 0x%lx\n&quot;</span>,</span><br><span class="line">        free_mem_start, phys_to_virt(PHYSICAL_MEM_END));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 预留 npages 页内存作为 page metadata 的空间</span></span><br><span class="line"><span class="keyword">if</span> ((free_mem_start + npages * <span class="keyword">sizeof</span>(<span class="keyword">struct</span> page)) &gt; start_vaddr) &#123;</span><br><span class="line">    BUG(<span class="string">&quot;kernel panic: init_mm metadata is too large!\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">page_meta_start = (<span class="keyword">struct</span> page *)free_mem_start;</span><br><span class="line">kdebug(<span class="string">&quot;page_meta_start: 0x%lx, real_start_vadd: 0x%lx,&quot;</span></span><br><span class="line">        <span class="string">&quot;npages: 0x%lx, meta_page_size: 0x%lx\n&quot;</span>,</span><br><span class="line">        page_meta_start, start_vaddr, npages, <span class="keyword">sizeof</span>(<span class="keyword">struct</span> page));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 初始化物理内存的伙伴分配器</span></span><br><span class="line"><span class="comment">/* buddy alloctor for managing physical memory */</span></span><br><span class="line">init_buddy(&amp;global_mem, page_meta_start, start_vaddr, npages);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 初始化分配小内存区域的 slab分配器</span></span><br><span class="line"><span class="comment">/* slab alloctor for allocating small memory regions */</span></span><br><span class="line">init_slab();</span><br><span class="line"></span><br><span class="line">map_kernel_space(KBASE + (<span class="number">128UL</span> &lt;&lt; <span class="number">21</span>), <span class="number">128UL</span> &lt;&lt; <span class="number">21</span>, <span class="number">128UL</span> &lt;&lt; <span class="number">21</span>);</span><br><span class="line"><span class="comment">//check whether kernel space [KABSE + 256 : KBASE + 512] is mapped </span></span><br><span class="line">kernel_space_check();</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>page metadata</code> 是物理页的元数据，即 <code>struct page</code>，用来记录页面的属性，如是否被分配、内存块阶数是否被 <code>slab</code> 分配器使用</li>
+<li><code>page</code> 即实际存在的物理页面</li>
+</ul>
+<h2 id="伙伴系统"><a href="#伙伴系统" class="headerlink" title="伙伴系统"></a>伙伴系统</h2><h3 id="方案思想"><a href="#方案思想" class="headerlink" title="方案思想"></a>方案思想</h3><p>伙伴系统的思想是将内存进行分块，建立空闲块的链表 <code>free_lists</code>，每组链表中使用 <code>list_head</code> 链接同阶内存快</p>
+<p>注：只有唯一的伙伴块可以合并</p>
+<h3 id="结构实现"><a href="#结构实现" class="headerlink" title="结构实现"></a>结构实现</h3><p>在 <code>ChCore</code> 中使用唯一 <code>struct global_mem</code> 进行描述物理内存数据结构，</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct phys_mem_pool &#123;</span><br><span class="line">    u64 pool_start_addr; // 物理内存起始地址</span><br><span class="line">    u64 pool_mem_size; // 物理内存大小</span><br><span class="line">    u64 pool_phys_page_num; // 物理页数目</span><br><span class="line">    struct page *page_metadata; // 物理页元数据起始地址</span><br><span class="line">    struct free_list free_lists[BUDDY_MAX_ORDER]; // 内存块空闲链表</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>为了方便计数，free_list 维护了空闲块的个数 nr_free 和其管理的 free_list</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">struct free_list &#123;</span><br><span class="line">	struct list_head free_list; // 空闲链表</span><br><span class="line">	u64 nr_free;    // 空闲块数目</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">struct list_head &#123;</span><br><span class="line">	struct list_head *prev;</span><br><span class="line">	struct list_head *next;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>如何通过 <code>list_head</code> 对页进行管理呢，其实并非直接将 page 进行链接，而是通过 page 结构体内部的成员 node 进行链接</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">struct page &#123;</span><br><span class="line">	struct list_head node; // 空闲链表</span><br><span class="line">	int allocated; // 是否已分配</span><br><span class="line">	int order; // 当前页属于几阶内存块</span><br><span class="line">	void *slab; // 被 slab 分配器使用</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">                  page    page    page</span><br><span class="line"> free_list       ┌────┐  ┌────┐  ┌────┐</span><br><span class="line">┌─────────┐      │    │  │    │  │    │</span><br><span class="line">│nr_free  │      │    │  │    │  │    │</span><br><span class="line">├─────────┤    ─►├────┼─►├────┼─►├────┼─►</span><br><span class="line">│free_list├───►  │node│  │node│  │node│</span><br><span class="line">└─────────┘    ◄─┴────┘◄─┴────┘◄─┴────┘◄─</span><br></pre></td></tr></table></figure>
+<p>如何根据 <code>node</code> 获取 <code>page</code> 的地址呢，最简单的想法就是根据偏移值</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">define list_entry(ptr, <span class="built_in">type</span>, field) \</span></span><br><span class="line"><span class="language-bash">	container_of(ptr, <span class="built_in">type</span>, field)</span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">define container_of(ptr, <span class="built_in">type</span>, field) \</span></span><br><span class="line"><span class="language-bash">	((<span class="built_in">type</span> *)((void *)(ptr) - (u64)(&amp;(((<span class="built_in">type</span> *)(0))-&gt;field))))</span></span><br><span class="line"></span><br><span class="line">简化一下</span><br><span class="line">ptr：指向地址</span><br><span class="line">type：所属结构体类型</span><br><span class="line">field：结构体中所属字段</span><br><span class="line"></span><br><span class="line">🌰 struct page *page = list_entry((struct list_head *) ptr, (strcut page) page, ((struct page) page-&gt;(struct list_head)) node)</span><br></pre></td></tr></table></figure>
+
+<h3 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">init_buddy</span><span class="params">(<span class="keyword">struct</span> phys_mem_pool *pool, <span class="keyword">struct</span> page *start_page,</span></span><br><span class="line"><span class="params">		<span class="type">vaddr_t</span> start_addr, u64 page_num)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> order;</span><br><span class="line">    <span class="type">int</span> page_idx;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">page</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化内存池</span></span><br><span class="line">    pool-&gt;pool_start_addr = start_addr;</span><br><span class="line">    pool-&gt;page_metadata = start_page;</span><br><span class="line">    pool-&gt;pool_mem_size = page_num * BUDDY_PAGE_SIZE;</span><br><span class="line">    <span class="comment">/* This field is for unit test only. */</span></span><br><span class="line">    pool-&gt;pool_phys_page_num = page_num;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化各阶 free_list</span></span><br><span class="line">    <span class="keyword">for</span> (order = <span class="number">0</span>; order &lt; BUDDY_MAX_ORDER; ++order) &#123;</span><br><span class="line">        pool-&gt;free_lists[order].nr_free = <span class="number">0</span>;</span><br><span class="line">        init_list_head(&amp;(pool-&gt;free_lists[order].free_list));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 清空元数据区</span></span><br><span class="line">    <span class="built_in">memset</span>((<span class="type">char</span> *)start_page, <span class="number">0</span>, page_num * <span class="keyword">sizeof</span>(<span class="keyword">struct</span> page));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化元数据区，将每个页均标记为已分配，阶数为 0</span></span><br><span class="line">    <span class="keyword">for</span> (page_idx = <span class="number">0</span>; page_idx &lt; page_num; ++page_idx) &#123;</span><br><span class="line">        page = start_page + page_idx;</span><br><span class="line">        page-&gt;allocated = <span class="number">1</span>;</span><br><span class="line">        page-&gt;order = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 对每个 page 进行回收，通过 buddy_free_pages 收到对应的 free_list 中</span></span><br><span class="line">    <span class="keyword">for</span> (page_idx = <span class="number">0</span>; page_idx &lt; page_num; ++page_idx) &#123;</span><br><span class="line">        page = start_page + page_idx;</span><br><span class="line">        buddy_free_pages(pool, page);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取伙伴块</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">struct</span> page *<span class="title function_">get_buddy_chunk</span><span class="params">(<span class="keyword">struct</span> phys_mem_pool *pool,</span></span><br><span class="line"><span class="params">				    <span class="keyword">struct</span> page *chunk)</span></span><br><span class="line">&#123;</span><br><span class="line">    u64 chunk_addr;</span><br><span class="line">    u64 buddy_chunk_addr;</span><br><span class="line">    <span class="type">int</span> order;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取当前块的地址</span></span><br><span class="line">    chunk_addr = (u64) page_to_virt(pool, chunk);</span><br><span class="line">    order = chunk-&gt;order;</span><br><span class="line">    <span class="comment">/* 通过伙伴块的地址关系计算得到伙伴块的地址</span></span><br><span class="line"><span class="comment">     * 由于伙伴块的阶数相同，所以伙伴块地址之间仅有一位差别，仅需做一次异或操作</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">#<span class="keyword">define</span> BUDDY_PAGE_SIZE_ORDER (12)</span></span><br><span class="line">    buddy_chunk_addr = chunk_addr ^</span><br><span class="line">        (<span class="number">1UL</span> &lt;&lt; (order + BUDDY_PAGE_SIZE_ORDER));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 检查伙伴块的地址是否属于该内存池</span></span><br><span class="line">    <span class="keyword">if</span> ((buddy_chunk_addr &lt; pool-&gt;pool_start_addr) ||</span><br><span class="line">        (buddy_chunk_addr &gt;= (pool-&gt;pool_start_addr +</span><br><span class="line">                    pool-&gt;pool_mem_size))) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> virt_to_page(pool, (<span class="type">void</span> *)buddy_chunk_addr);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="练习-1"><a href="#练习-1" class="headerlink" title="练习 1"></a>练习 1</h3><p><strong>实 现kernel&#x2F;mm&#x2F;buddy.c中 的 四 个 函 数：buddy_get_pages()，split_page()，buddy_free_pages()，merge_page()。请参考伙伴块索引等功能的辅助函数:get_buddy_chunk()。</strong><br>从伙伴系统获取块的大致流程：</p>
+<ul>
+<li>找到能够满足连续分配 order 的连续页块</li>
+<li>进行分配</li>
+<li>分割 list node<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * buddy_get_pages: get free page from buddy system.</span></span><br><span class="line"><span class="comment"> * pool @ physical memory structure reserved in the kernel</span></span><br><span class="line"><span class="comment"> * order @ get the (1&lt;&lt;order) continous pages from the buddy system </span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">struct</span> page *<span class="title function_">buddy_get_pages</span><span class="params">(<span class="keyword">struct</span> phys_mem_pool *pool, u64 order)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// &lt;lab2&gt;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">page</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> current_order = order;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (current_order &lt; BUDDY_MAX_ORDER &amp;&amp; pool-&gt;freelists[current_order].nr_free &lt;= <span class="number">0</span>)</span><br><span class="line">        current_order++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (current_order &gt;= BUDDY_MAX_ORDER)&#123;</span><br><span class="line">        kwarn(<span class="string">&quot;Try to allocate a buddy chunk greater than BUDDY_MAX_ORDER\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">page</span> =</span> list_entry(pool-&gt;freelists[current_order].free_list.next, <span class="keyword">struct</span> page, node);</span><br><span class="line">    <span class="keyword">if</span> (page == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        kdebug(<span class="string">&quot;buddy get a NULL page\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    split_page(pool, order, page);</span><br><span class="line">    page-&gt;allocated = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> page;</span><br><span class="line">    <span class="comment">// &lt;/lab2&gt;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+从伙伴系统分割 list node 的大致流程</li>
+<li>提取要切割的页</li>
+<li>递归分割，直到满足大小</li>
+<li>相关 free_list 的数目要削减<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">page_append</span><span class="params">(<span class="keyword">struct</span> phys_mem_pool *pool, strcut page *page)</span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">free_list</span> *<span class="title">free_list</span> =</span> &amp;pool-&gt;free_lists[page-&gt;order];</span><br><span class="line">    list_add(&amp;page-&gt;node, &amp;free_list-&gt;free_list);</span><br><span class="line">    free_list-&gt;nr_free++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">page_del</span><span class="params">(<span class="keyword">struct</span> phys_mem_pool *pool, strcut page *page)</span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">free_list</span> *<span class="title">free_list</span> =</span> &amp;pool-&gt;free_lists[page-&gt;order];</span><br><span class="line">    list_del(&amp;page-&gt;node);</span><br><span class="line">    free_list-&gt;nr_free--;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * split_page: split the memory block into two smaller sub-block, whose order</span></span><br><span class="line"><span class="comment"> * is half of the origin page.</span></span><br><span class="line"><span class="comment"> * pool @ physical memory structure reserved in the kernel</span></span><br><span class="line"><span class="comment"> * order @ order for origin page block</span></span><br><span class="line"><span class="comment"> * page @ splitted page</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">struct</span> page *<span class="title function_">split_page</span><span class="params">(<span class="keyword">struct</span> phys_mem_pool *pool, u64 order,</span></span><br><span class="line"><span class="params">			       <span class="keyword">struct</span> page *page)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// &lt;lab2&gt;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">split_page</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (page-&gt;allocated == <span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        kwarn(<span class="string">&quot;Try to split an allocated page\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    page-&gt;allocated = <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    page_del(pool, page);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (page-&gt;order &gt; order)</span><br><span class="line">    &#123;</span><br><span class="line">        page-&gt;order--;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">page</span>* <span class="title">buddy_page</span> =</span> get_buddy_chunk(pool, page);</span><br><span class="line">        <span class="keyword">if</span> (buddy_page != <span class="literal">NULL</span>)&#123;</span><br><span class="line">            buddy_page-&gt;allocated = <span class="number">0</span>;</span><br><span class="line">            buddy_page-&gt;order = page-&gt;order;</span><br><span class="line">            page_append(pool, buddy_page);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> split_page;</span><br><span class="line">    <span class="comment">// &lt;/lab2&gt;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+从伙伴系统合并 list node 的大概流程</li>
+<li>提取要合并的块</li>
+<li>查找伙伴块</li>
+<li>递归合并</li>
+<li>修改 nr_free<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * merge_page: merge the given page with the buddy page</span></span><br><span class="line"><span class="comment"> * pool @ physical memory structure reserved in the kernel</span></span><br><span class="line"><span class="comment"> * page @ merged page (attempted)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">struct</span> page *<span class="title function_">merge_page</span><span class="params">(<span class="keyword">struct</span> phys_mem_pool *pool, <span class="keyword">struct</span> page *page)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// &lt;lab2&gt;</span></span><br><span class="line"></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">page</span> *<span class="title">merge_page</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (page-&gt;allocated == <span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        kwarn(<span class="string">&quot;Try to merge an allocated page\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    page_del(pool, page);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (page-&gt;order &lt; BUDDY_MAX_ORDER)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">page</span>* <span class="title">buddy_page</span> =</span> get_buddy_chunk(pool, page);</span><br><span class="line">        <span class="keyword">if</span> (buddy_page == <span class="literal">NULL</span> || buddy_page-&gt;allocated || buddy_page-&gt;order != page-&gt;order)&#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (page &gt; buddy_page)&#123;</span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">page</span>* <span class="title">tmp</span> =</span> buddy_page;</span><br><span class="line">            buddy_page = page;</span><br><span class="line">            page = tmp;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        buddy_page-&gt;allocated = <span class="number">1</span>;</span><br><span class="line">        page_del(pool, page);</span><br><span class="line">        page-&gt;order++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    page_append(pool, page);</span><br><span class="line">    merge_page = page;</span><br><span class="line">	<span class="keyword">return</span> merge_page;</span><br><span class="line">	<span class="comment">// &lt;/lab2&gt;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+从释放块到伙伴系统的大致流程：</li>
+<li>判断是否在使用</li>
+<li>释放并合并<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * buddy_free_pages: give back the pages to buddy system</span></span><br><span class="line"><span class="comment"> * pool @ physical memory structure reserved in the kernel</span></span><br><span class="line"><span class="comment"> * page @ free page structure</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">buddy_free_pages</span><span class="params">(<span class="keyword">struct</span> phys_mem_pool *pool, <span class="keyword">struct</span> page *page)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// &lt;lab2&gt;</span></span><br><span class="line">    <span class="keyword">if</span> (!page-&gt;allocated)&#123;</span><br><span class="line">        kwarn(<span class="string">&quot;Try to free a free page\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    page-&gt;allocated = <span class="number">0</span>;</span><br><span class="line">    page_append(pool, page);</span><br><span class="line"></span><br><span class="line">    merge_page(pool, page);</span><br><span class="line">	<span class="comment">// &lt;/lab2&gt;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h1 id="虚拟内存映射"><a href="#虚拟内存映射" class="headerlink" title="虚拟内存映射"></a>虚拟内存映射</h1><h2 id="AArch64-地址翻译与地址空间分离"><a href="#AArch64-地址翻译与地址空间分离" class="headerlink" title="AArch64 地址翻译与地址空间分离"></a>AArch64 地址翻译与地址空间分离</h2><p>程序中的数据或指令的虚拟地址，无法直接被处理器使用，通过 MMU 内存管理单元进行翻译，MMU 一般通过遍历内存中的页表，将程序中的虚拟地址翻译为物理地址</p>
+<p>不同进程间，以及进程态和用户态之间拥有不同的页表，操作系统在进行上下文切换时也会切换对应的页表项</p>
+<p>AArch64 使用两个页表基地址寄存器，用来分离进程态和内核态的页表，其翻译范围由 TCR_ELx 配置，一般而言（以 48 位为例）</p>
+<ul>
+<li>TTBR0_ELx 存储用户态页表基址 转换范围 0x0000000000000000 ~ 0x0000FFFFFFFFFFFF</li>
+<li>TTBR1_ELx 存储内核态页表基址 转换范围 0xFFFF000000000000 ~ 0xFFFFFFFFFFFFFFFF</li>
+</ul>
+<p><strong>问题 2</strong></p>
+<blockquote>
+<p>AArch64 采用了两个页表基地址寄存器，相较于 x86-64 架构中只有一个页表基地址寄存器，这样的好处是什么？请从性能与安全两个角度做简要的回答。</p>
+</blockquote>
+<p>从性能来看，对进程态和内核态设置不同的页表，一方面在进行系统调用时无需进行页表的切换，也避免 TLB 刷新的开销</p>
+<p>x86_64 仅提供一个页表基址寄存器 CR3 内核不使用单独页表，因此选择直接映射到应用程序的高地址部分，也避免了系统调用中造成的页表切换</p>
+<p>从安全性来看，双页表能够使内核态与进程态之间的数据指令无法进行交互，能够防止 SMEP SMAP 等攻击</p>
+<h2 id="虚拟地址翻译与组成"><a href="#虚拟地址翻译与组成" class="headerlink" title="虚拟地址翻译与组成"></a>虚拟地址翻译与组成</h2><p>ChCore 采用四级页表结构<br><img src="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205311559912.png"></p>
+<p>MMU 使用 48 位进行页表的遍历</p>
+<ul>
+<li>[47:39] 0级页表索引号，1个0级页表项对应 512 G，其内容指向1级页表</li>
+<li>[38:30] 1级页表索引号，每个1级页表项对应 1 G范围，其内容指向2级页表</li>
+<li>[29:21] 2级页表索引号，每个2级页表项对应 2 M范围，其内容指向3级页表</li>
+<li>[20:12] 3级页表索引号，每个3级页表项对应 4k 范围，即一页，其内容为页帧号</li>
+<li>[11:0]  页偏移，与页帧号结合能得到真实物理地址</li>
+</ul>
+<p>页表项使用描述符进行表示，分为三种：</p>
+<ul>
+<li>表描述符：意味着下一级为页表，包含页表地址及属性</li>
+<li>块描述符：包含下一项页表地址或者页帧号及相应的属性</li>
+<li>页描述符：表示下一级为页，包含页帧号及属性</li>
+</ul>
+<p>其条目结构如下：<br><img src="https://cdn.jsdelivr.net/gh/darenfy/wiki-resources@master/202205311616954.png"><br>对应源码进行理解</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        u64 is_valid:<span class="number">1</span>, is_table:<span class="number">1</span>, ignored1:<span class="number">10</span>, next_table_addr:<span class="number">36</span>, reserved:<span class="number">4</span>, ignored2:<span class="number">7</span>, PXNTable:<span class="number">1</span>,	<span class="comment">// Privileged Execute-never for next level</span></span><br><span class="line">            XNTable:<span class="number">1</span>,	<span class="comment">// Execute-never for next level</span></span><br><span class="line">            APTable:<span class="number">2</span>,	<span class="comment">// Access permissions for next level</span></span><br><span class="line">            NSTable:<span class="number">1</span>;</span><br><span class="line">    &#125; table;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        u64 is_valid:<span class="number">1</span>, is_table:<span class="number">1</span>, attr_index:<span class="number">3</span>,	<span class="comment">// Memory attributes index</span></span><br><span class="line">            NS:<span class="number">1</span>,		<span class="comment">// Non-secure</span></span><br><span class="line">            AP:<span class="number">2</span>,		<span class="comment">// Data access permissions</span></span><br><span class="line">            SH:<span class="number">2</span>,		<span class="comment">// Shareability</span></span><br><span class="line">            AF:<span class="number">1</span>,		<span class="comment">// Accesss flag</span></span><br><span class="line">            nG:<span class="number">1</span>,		<span class="comment">// Not global bit</span></span><br><span class="line">            reserved1:<span class="number">4</span>, nT:<span class="number">1</span>, reserved2:<span class="number">13</span>, pfn:<span class="number">18</span>, reserved3:<span class="number">2</span>, GP:<span class="number">1</span>, reserved4:<span class="number">1</span>, DBM:<span class="number">1</span>,	<span class="comment">// Dirty bit modifier</span></span><br><span class="line">            Contiguous:<span class="number">1</span>, PXN:<span class="number">1</span>,	<span class="comment">// Privileged execute-never</span></span><br><span class="line">            UXN:<span class="number">1</span>,		<span class="comment">// Execute never</span></span><br><span class="line">            soft_reserved:<span class="number">4</span>, PBHA:<span class="number">4</span>;	<span class="comment">// Page based hardware attributes</span></span><br><span class="line">    &#125; l1_block;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        u64 is_valid:<span class="number">1</span>, is_table:<span class="number">1</span>, attr_index:<span class="number">3</span>,	<span class="comment">// Memory attributes index</span></span><br><span class="line">            NS:<span class="number">1</span>,		<span class="comment">// Non-secure</span></span><br><span class="line">            AP:<span class="number">2</span>,		<span class="comment">// Data access permissions</span></span><br><span class="line">            SH:<span class="number">2</span>,		<span class="comment">// Shareability</span></span><br><span class="line">            AF:<span class="number">1</span>,		<span class="comment">// Accesss flag</span></span><br><span class="line">            nG:<span class="number">1</span>,		<span class="comment">// Not global bit</span></span><br><span class="line">            reserved1:<span class="number">4</span>, nT:<span class="number">1</span>, reserved2:<span class="number">4</span>, pfn:<span class="number">27</span>, reserved3:<span class="number">2</span>, GP:<span class="number">1</span>, reserved4:<span class="number">1</span>, DBM:<span class="number">1</span>,	<span class="comment">// Dirty bit modifier</span></span><br><span class="line">            Contiguous:<span class="number">1</span>, PXN:<span class="number">1</span>,	<span class="comment">// Privileged execute-never</span></span><br><span class="line">            UXN:<span class="number">1</span>,		<span class="comment">// Execute never</span></span><br><span class="line">            soft_reserved:<span class="number">4</span>, PBHA:<span class="number">4</span>;	<span class="comment">// Page based hardware attributes</span></span><br><span class="line">    &#125; l2_block;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        u64 is_valid:<span class="number">1</span>, is_page:<span class="number">1</span>, attr_index:<span class="number">3</span>,	<span class="comment">// Memory attributes index</span></span><br><span class="line">            NS:<span class="number">1</span>,		<span class="comment">// Non-secure</span></span><br><span class="line">            AP:<span class="number">2</span>,		<span class="comment">// Data access permissions</span></span><br><span class="line">            SH:<span class="number">2</span>,		<span class="comment">// Shareability</span></span><br><span class="line">            AF:<span class="number">1</span>,		<span class="comment">// Accesss flag</span></span><br><span class="line">            nG:<span class="number">1</span>,		<span class="comment">// Not global bit</span></span><br><span class="line">            pfn:<span class="number">36</span>, reserved:<span class="number">3</span>, DBM:<span class="number">1</span>,	<span class="comment">// Dirty bit modifier</span></span><br><span class="line">            Contiguous:<span class="number">1</span>, PXN:<span class="number">1</span>,	<span class="comment">// Privileged execute-never</span></span><br><span class="line">            UXN:<span class="number">1</span>,		<span class="comment">// Execute never</span></span><br><span class="line">            soft_reserved:<span class="number">4</span>, PBHA:<span class="number">4</span>,	<span class="comment">// Page based hardware attributes</span></span><br><span class="line">            ignored:<span class="number">1</span>;</span><br><span class="line">    &#125; l3_page;</span><br><span class="line">    u64 pte;</span><br><span class="line">&#125; <span class="type">pte_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* page_table_page type */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">	<span class="type">pte_t</span> ent[PTP_ENTRIES];</span><br><span class="line">&#125; <span class="type">ptp_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题 3</strong></p>
+<blockquote>
+<ol>
+<li>请问在页表条目中填写的下一级页表的地址是物理地址还是虚拟地址?</li>
+<li>在 ChCore 中检索当前页表条目的时候，使用的页表基地址是虚拟地址还是物理地址？</li>
+</ol>
+</blockquote>
+<p>在页表条目中填写的地址均是物理地址，但是页表基地址是虚拟地址</p>
+<p>有时需要通过物理地址进行读取和修改内存，内核和用户态程序都需要虚拟内存转换，ChCore从虚拟地址 0xFFFFFF00_00000000 开始线性映射物理内存，可以理解基于页表的虚拟内存机制是为了保证进程的隔离性与内存的利用率，而内核态页表的使用是为了安全访问</p>
+<p><strong>问题 4</strong></p>
+<blockquote>
+<ol>
+<li>如果我们有 4G 物理内存，管理内存需要多少空间开销? 这个开销是如何降低的?</li>
+<li>总结一下 x86-64 和 AArch64 地址翻译机制的区别，AArch64 MMU架构设计的优点是什么?</li>
+</ol>
+</blockquote>
+<p>4G 物理内存</p>
+<ul>
+<li>如果一级页表，每页 4 K，共有 10^6 页，每个条目 8 字节，需要 8 M</li>
+<li>如果是多级页表，3级页表 2M，2级页表 1G，1级页表 512G，需要 4 + 4*512 ～ 2000 &#x3D; 16K</li>
+</ul>
+<p>AArch64 地址翻译使用内核进程双页表</p>
+<h2 id="页表管理"><a href="#页表管理" class="headerlink" title="页表管理"></a>页表管理</h2><p>实验实现页表管理机制，包括四级页表插入和删除虚拟到物理的映射，以及需要时创建页表页<br><strong>练习 2</strong></p>
+<blockquote>
+<p>在文件kernel&#x2F;mm&#x2F;page_table中，实现map_range_in_pgtbl()，unmap_range_in_pgtbl()和query_in_pgtbl() 。可以调用辅助函数：set_pte_flags(),get_next_ptp(),flush_tlb()。</p>
+</blockquote>
+<p>首先对辅助函数进行分析</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line"> * the 3rd arg means the kind of PTE.</span><br><span class="line"> */</span><br><span class="line"> // 根据类型和标识位设置 页的属性</span><br><span class="line">static int set_pte_flags(pte_t * entry, vmr_prop_t flags, int kind)</span><br><span class="line">&#123;</span><br><span class="line">    if (flags &amp; VMR_WRITE)</span><br><span class="line">        entry-&gt;l3_page.AP = AARCH64_PTE_AP_HIGH_RW_EL0_RW;</span><br><span class="line">    else</span><br><span class="line">        entry-&gt;l3_page.AP = AARCH64_PTE_AP_HIGH_RO_EL0_RO;</span><br><span class="line"></span><br><span class="line">    if (flags &amp; VMR_EXEC)</span><br><span class="line">        entry-&gt;l3_page.UXN = AARCH64_PTE_UX;</span><br><span class="line">    else</span><br><span class="line">        entry-&gt;l3_page.UXN = AARCH64_PTE_UXN;</span><br><span class="line"></span><br><span class="line">    // EL1 cannot directly execute EL0 accessiable region.</span><br><span class="line">    if (kind == USER_PTE)</span><br><span class="line">        entry-&gt;l3_page.PXN = AARCH64_PTE_PXN;</span><br><span class="line">    entry-&gt;l3_page.AF = AARCH64_PTE_AF_ACCESSED;</span><br><span class="line"></span><br><span class="line">    // inner sharable</span><br><span class="line">    entry-&gt;l3_page.SH = INNER_SHAREABLE;</span><br><span class="line">    // memory type</span><br><span class="line">    entry-&gt;l3_page.attr_index = NORMAL_MEMORY;</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">/*</span><br><span class="line"> * Find next page table page for the &quot;va&quot;.</span><br><span class="line"> */ 为虚拟地址 va 查找下一级页白页，给定当前页表及层级，返回下一级页表，如果缺失则进行分配</span><br><span class="line">static int get_next_ptp(ptp_t * cur_ptp, u32 level, vaddr_t va,</span><br><span class="line">			ptp_t ** next_ptp, pte_t ** pte, bool alloc)</span><br><span class="line">&#123;</span><br><span class="line">    u32 index = 0;</span><br><span class="line">    pte_t *entry;</span><br><span class="line"></span><br><span class="line">    if (cur_ptp == NULL)</span><br><span class="line">        return -ENOMAPPING;</span><br><span class="line">    // 根据层级获取 va 在该层级的索引号</span><br><span class="line">    switch (level) &#123;</span><br><span class="line">    case 0:</span><br><span class="line">        index = GET_L0_INDEX(va);</span><br><span class="line">        break;</span><br><span class="line">    case 1:</span><br><span class="line">        index = GET_L1_INDEX(va);</span><br><span class="line">        break;</span><br><span class="line">    case 2:</span><br><span class="line">        index = GET_L2_INDEX(va);</span><br><span class="line">        break;</span><br><span class="line">    case 3:</span><br><span class="line">        index = GET_L3_INDEX(va);</span><br><span class="line">        break;</span><br><span class="line">    default:</span><br><span class="line">        BUG_ON(1);</span><br><span class="line">    &#125;</span><br><span class="line">    // 获取入口项的地址</span><br><span class="line">    entry = &amp;(cur_ptp-&gt;ent[index]);</span><br><span class="line">    if (IS_PTE_INVALID(entry-&gt;pte)) &#123;</span><br><span class="line">        if (alloc == false) &#123;</span><br><span class="line">            return -ENOMAPPING;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            /* alloc a new page table page */</span><br><span class="line">            ptp_t *new_ptp;</span><br><span class="line">            paddr_t new_ptp_paddr;</span><br><span class="line">            pte_t new_pte_val;</span><br><span class="line">            // 分配单个物理页作为新的页表页</span><br><span class="line">            new_ptp = get_pages(0);</span><br><span class="line">            BUG_ON(new_ptp == NULL);</span><br><span class="line">            memset((void *)new_ptp, 0, PAGE_SIZE);</span><br><span class="line">            // 获取物理地址并设置属性为页表 table</span><br><span class="line">            new_ptp_paddr = virt_to_phys((vaddr_t) new_ptp);</span><br><span class="line"></span><br><span class="line">            new_pte_val.pte = 0;</span><br><span class="line">            new_pte_val.table.is_valid = 1;</span><br><span class="line">            new_pte_val.table.is_table = 1;</span><br><span class="line">            new_pte_val.table.next_table_addr</span><br><span class="line">                = new_ptp_paddr &gt;&gt; PAGE_SHIFT;</span><br><span class="line"></span><br><span class="line">            /* same effect as: cur_ptp-&gt;ent[index] = new_pte_val; */</span><br><span class="line">            entry-&gt;pte = new_pte_val.pte;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    // 转换为虚拟地址</span><br><span class="line">    *next_ptp = (ptp_t *) GET_NEXT_PTP(entry);</span><br><span class="line">    *pte = entry;</span><br><span class="line">    if (IS_PTE_TABLE(entry-&gt;pte))</span><br><span class="line">        return NORMAL_PTP;</span><br><span class="line">    else</span><br><span class="line">        return BLOCK_PTP;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先在获得页表的基础上，实现 query_in_pgtbl()，完成虚拟地址到物理地址的转换，并返回相关页表入口</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line"> * Translate a va to pa, and get its pte for the flags</span><br><span class="line"> */</span><br><span class="line">/*</span><br><span class="line"> * query_in_pgtbl: translate virtual address to physical </span><br><span class="line"> * address and return the corresponding page table entry</span><br><span class="line"> * </span><br><span class="line"> * pgtbl @ ptr for the first level page table(pgd) virtual address</span><br><span class="line"> * va @ query virtual address</span><br><span class="line"> * pa @ return physical address</span><br><span class="line"> * entry @ return page table entry</span><br><span class="line"> * </span><br><span class="line"> * Hint: check the return value of get_next_ptp, if ret == BLOCK_PTP</span><br><span class="line"> * return the pa and block entry immediately</span><br><span class="line"> */</span><br><span class="line">int query_in_pgtbl(vaddr_t * pgtbl, vaddr_t va, paddr_t * pa, pte_t ** entry)</span><br><span class="line">&#123;</span><br><span class="line">	// &lt;lab2&gt;</span><br><span class="line">    ptp_t * cur_ptp = (ptp_t *) pgtbl;</span><br><span class="line">	ptp_t *next_ptp = NULL;</span><br><span class="line">	pte_t *next_pte = NULL;</span><br><span class="line"></span><br><span class="line">	int level = 0;</span><br><span class="line">	int err = 0;</span><br><span class="line">	while (level &lt;= 3 &amp;&amp; (err = get_next_ptp(cur_ptp, level, va, &amp;next_ptp, &amp;next_pte, false)) == NORMAL_PTP)</span><br><span class="line">	&#123;</span><br><span class="line">		cur_ptp = next_ptp;</span><br><span class="line">		level++;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	if (err == NORMAL_PTP)</span><br><span class="line">	&#123;</span><br><span class="line">		if (level != 4)&#123;</span><br><span class="line">			kwarn(&quot;query_in_pgtbl: level = %d &lt; 4\n&quot;, level);</span><br><span class="line">			return -ENOMAPPING;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		if (!next_pte-&gt;l3_page.is_valid || !next_pte-&gt;l3_page.is_page)&#123;</span><br><span class="line">			return -ENOMAPPING;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		*pa = virt_to_phys((vaddr_t)next_ptp) + GET_VA_OFFSET_L3(va);</span><br><span class="line">		return 0;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	else if(err &lt; 0)&#123;</span><br><span class="line">		return err;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	else &#123;</span><br><span class="line">		kwarn(&quot;query_in_pgtbl: show never be here\n&quot;);</span><br><span class="line">		return err;</span><br><span class="line">	&#125;</span><br><span class="line">	// &lt;/lab2&gt;</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来是映射与取消映射操作，对于映射来说，就是将物理页面与虚拟页面对应起来，新建页表可以借助 get_next_ptp 的 alloc 实现，以创建多级页表项，最后一级页项参考 alloc 实现并设置参数，对于取消映射而言，直接解除映射关系，直接将 pte 清零即可</p>
+<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line"> * map_range_in_pgtbl: map the virtual address [va:va+size] to </span><br><span class="line"> * physical address[pa:pa+size] in given pgtbl</span><br><span class="line"> *</span><br><span class="line"> * pgtbl @ ptr for the first level page table(pgd) virtual address</span><br><span class="line"> * va @ start virtual address</span><br><span class="line"> * pa @ start physical address</span><br><span class="line"> * len @ mapping size</span><br><span class="line"> * flags @ corresponding attribution bit</span><br><span class="line"> *</span><br><span class="line"> * Hint: In this function you should first invoke the get_next_ptp()</span><br><span class="line"> * to get the each level page table entries. Read type pte_t carefully</span><br><span class="line"> * and it is convenient for you to call set_pte_flags to set the page</span><br><span class="line"> * permission bit. Don&#x27;t forget to call flush_tlb at the end of this function </span><br><span class="line"> */</span><br><span class="line">int map_range_in_pgtbl(vaddr_t * pgtbl, vaddr_t va, paddr_t pa,</span><br><span class="line">		       size_t len, vmr_prop_t flags)</span><br><span class="line">&#123;</span><br><span class="line">	// &lt;lab2&gt;</span><br><span class="line">	for (const vaddr_t end_va = va + len; va &lt; end_va; va+= PAGE_SIZE)</span><br><span class="line">	&#123;</span><br><span class="line">		ptp_t * cur_ptp = (ptp_t *) pgtbl;</span><br><span class="line">		ptp_t * next_ptp = NULL;</span><br><span class="line">		pte_t * next_pte = NULL;</span><br><span class="line">		int level = 0;</span><br><span class="line">		int err = 0;</span><br><span class="line"></span><br><span class="line">		while (level &lt;= 2 &amp;&amp; (err = get_next_ptp(cur_ptp, level, va, &amp;next_ptp, &amp;next_pte, true)) == NORMAL_PTP)</span><br><span class="line">		&#123;</span><br><span class="line">			cur_ptp = next_ptp;</span><br><span class="line">			level++;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		u32 index = GET_L3_INDEX(va);</span><br><span class="line">		next_pte = &amp;(cur_ptp-&gt;ent[index]);</span><br><span class="line"><span class="meta prompt_">		next_pte-&gt;</span><span class="language-bash">l3_page.is_valid = 1;</span></span><br><span class="line"><span class="meta prompt_">		next_pte-&gt;</span><span class="language-bash">l3_page.is_page = 1;</span></span><br><span class="line"><span class="meta prompt_">		next_pte-&gt;</span><span class="language-bash">l3_page.pfn = pa &gt;&gt; PAGE_SHIFT;</span></span><br><span class="line">		set_pte_flags(next_pte, flags, KERNEL_PTE);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	flush_tlb();</span><br><span class="line">	// &lt;/lab2&gt;</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">/*</span><br><span class="line"> * unmap_range_in_pgtble: unmap the virtual address [va:va+len]</span><br><span class="line"> * </span><br><span class="line"> * pgtbl @ ptr for the first level page table(pgd) virtual address</span><br><span class="line"> * va @ start virtual address</span><br><span class="line"> * len @ unmapping size</span><br><span class="line"> * </span><br><span class="line"> * Hint: invoke get_next_ptp to get each level page table, don&#x27;t </span><br><span class="line"> * forget the corner case that the virtual address is not mapped.</span><br><span class="line"> * call flush_tlb() at the end of function</span><br><span class="line"> * </span><br><span class="line"> */</span><br><span class="line">int unmap_range_in_pgtbl(vaddr_t * pgtbl, vaddr_t va, size_t len)</span><br><span class="line">&#123;</span><br><span class="line">	// &lt;lab2&gt;</span><br><span class="line">	for (const vaddr_t end_va = va + len; va &lt; end_va; va+= PAGE_SIZE)</span><br><span class="line">	&#123;</span><br><span class="line">		ptp_t * cur_ptp = (ptp_t *) pgtbl;</span><br><span class="line">		ptp_t * next_ptp = NULL;</span><br><span class="line">		pte_t * next_pte = NULL;</span><br><span class="line">		int level = 0;</span><br><span class="line">		int err = 0;</span><br><span class="line"></span><br><span class="line">		while (level &lt;= 2 &amp;&amp; (err = get_next_ptp(cur_ptp, level, va, &amp;next_ptp, &amp;next_pte, false)) == NORMAL_PTP)</span><br><span class="line">		&#123;</span><br><span class="line">			cur_ptp = next_ptp;</span><br><span class="line">			level++;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		if (err == NORMAL_PTP &amp;&amp; level == 3 &amp;&amp; cur_ptp != NULL)</span><br><span class="line">		&#123;</span><br><span class="line">			u32 index = GET_L3_INDEX(va);</span><br><span class="line">			next_pte = &amp;(cur_ptp-&gt;ent[index]);</span><br><span class="line"><span class="meta prompt_">			next_pte-&gt;</span><span class="language-bash">pte = 0;</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	flush_tlb();</span><br><span class="line">	// &lt;/lab2&gt;</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="内核地址空间"><a href="#内核地址空间" class="headerlink" title="内核地址空间"></a>内核地址空间</h1><p><strong>问题 5</strong></p>
+<blockquote>
+<p>在 AArch64 MMU 架构中，使用了两个 TTBR 寄存器，ChCore 使用一个 TTBR 寄存器映射内核地址空间，另一个寄存器映射用户态的地址空间，那么是否还需要通过设置页表位的属性来隔离内核态和用户态的地址空间?</p>
+</blockquote>
+<p>通过设置属性可以配置内核态无法访问用户态的地址空间，防止内核漏洞 SMEP SMAP</p>
+<p><strong>问题 6</strong></p>
+<blockquote>
+<ol>
+<li>ChCore 为什么要使用块条目组织内核内存? 哪些虚拟地址空间在 Boot 阶段必须映射，哪些虚拟地址空间可以在内核启动后延迟?</li>
+</ol>
+</blockquote>
+<p>相比用户态内存，内核态内存的访问频率较高，使用大页 TLB miss 会减少，带来性能的提升<br>内核模块地址在 Boot 阶段需要映射，内核启动后的文件系统、进程调度等模块可以延迟启动</p>
+<blockquote>
+<ol start="2">
+<li>为什么用户程序不能读写内核内存? 保护内核内存的具体机制是什么?</li>
+</ol>
+</blockquote>
+<p>在访问内核内存时，使用程序标志寄存器以及页表项标志进行检测</p>
+<p><strong>练习 3</strong></p>
+<blockquote>
+<p>完善kernel&#x2F;mm&#x2F;mm.c中的map_kernel_space()函数，实现对内核空间的映射，并且可以通过kernel_space_check()的检查。</p>
+</blockquote>
+<p>直接调用前面写的函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">map_kernel_space</span><span class="params">(<span class="type">vaddr_t</span> va, <span class="type">paddr_t</span> pa, <span class="type">size_t</span> len)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// &lt;lab2&gt;</span></span><br><span class="line">    <span class="type">vaddr_t</span> *ttbr1 = (<span class="type">vaddr_t</span> *)get_ttbr1();</span><br><span class="line">    map_range_in_pgtbl(ttbr1, va, pa, len, KERNEL_PT);</span><br><span class="line">    <span class="comment">// &lt;/lab2&gt;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/AArch64/" rel="tag"># AArch64</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/28/%E6%9C%89%E8%B6%A3%E7%9A%84%E8%AE%BA%E6%96%87%E5%88%97%E8%A1%A8/" rel="prev" title="有趣的论文列表">
+      <i class="fa fa-chevron-left"></i> 有趣的论文列表
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/31/ChCore-Lab3-%E7%94%A8%E6%88%B7%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" rel="next" title="ChCore Lab3 用户进程与异常处理">
+      ChCore Lab3 用户进程与异常处理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">物理内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="nav-number">1.1.</span> <span class="nav-text">物理内存布局</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98-1"><span class="nav-number">1.1.1.</span> <span class="nav-text">问题 1</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F"><span class="nav-number">1.2.</span> <span class="nav-text">伙伴系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E6%80%9D%E6%83%B3"><span class="nav-number">1.2.1.</span> <span class="nav-text">方案思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.2.2.</span> <span class="nav-text">结构实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">1.2.3.</span> <span class="nav-text">代码分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%83%E4%B9%A0-1"><span class="nav-number">1.2.4.</span> <span class="nav-text">练习 1</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84"><span class="nav-number">2.</span> <span class="nav-text">虚拟内存映射</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#AArch64-%E5%9C%B0%E5%9D%80%E7%BF%BB%E8%AF%91%E4%B8%8E%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%88%86%E7%A6%BB"><span class="nav-number">2.1.</span> <span class="nav-text">AArch64 地址翻译与地址空间分离</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%BF%BB%E8%AF%91%E4%B8%8E%E7%BB%84%E6%88%90"><span class="nav-number">2.2.</span> <span class="nav-text">虚拟地址翻译与组成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A1%B5%E8%A1%A8%E7%AE%A1%E7%90%86"><span class="nav-number">2.3.</span> <span class="nav-text">页表管理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="nav-number">3.</span> <span class="nav-text">内核地址空间</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="emiya"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">emiya</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="">
+    <a target="_blank" class="social-link" href="/atom.xml" style="color: burlywood;">
+      <span class="icon">
+        <i class="fa fa-rss"></i>
+      </span>
+      <span class="label">RSS</span>
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/darenfy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;darenfy" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:darenfy@gmail.com" title="E-Mail → mailto:darenfy@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">emiya</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
