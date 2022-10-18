@@ -34,6 +34,27 @@
   </entry>
   
   <entry>
+    <title>IO_URING系列</title>
+    <link href="https://darenfy.github.io/2022/10/18/IO-URING%E7%B3%BB%E5%88%97%E5%BC%80%E7%AF%87/"/>
+    <id>https://darenfy.github.io/2022/10/18/IO-URING%E7%B3%BB%E5%88%97%E5%BC%80%E7%AF%87/</id>
+    <published>2022-10-18T02:01:23.000Z</published>
+    <updated>2022-10-18T02:01:23.000Z</updated>
+    
+    
+    <summary type="html">io_uring 学习笔记</summary>
+    
+    
+    
+    <category term="Kernel" scheme="https://darenfy.github.io/categories/Kernel/"/>
+    
+    <category term="Linux" scheme="https://darenfy.github.io/categories/Kernel/Linux/"/>
+    
+    
+    <category term="io_uring" scheme="https://darenfy.github.io/tags/io-uring/"/>
+    
+  </entry>
+  
+  <entry>
     <title>corCTF 2021 利用 msg_msg 实现任意地址读写</title>
     <link href="https://darenfy.github.io/2022/06/15/corCTF-2021-%E5%88%A9%E7%94%A8-msg-msg-%E5%AE%9E%E7%8E%B0%E4%BB%BB%E6%84%8F%E5%9C%B0%E5%9D%80%E8%AF%BB%E5%86%99/"/>
     <id>https://darenfy.github.io/2022/06/15/corCTF-2021-%E5%88%A9%E7%94%A8-msg-msg-%E5%AE%9E%E7%8E%B0%E4%BB%BB%E6%84%8F%E5%9C%B0%E5%9D%80%E8%AF%BB%E5%86%99/</id>
@@ -418,25 +439,6 @@
     <category term="Linux" scheme="https://darenfy.github.io/tags/Linux/"/>
     
     <category term="QEMU" scheme="https://darenfy.github.io/tags/QEMU/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>个人博客搭建记录[2]</title>
-    <link href="https://darenfy.github.io/2022/05/02/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95-2/"/>
-    <id>https://darenfy.github.io/2022/05/02/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95-2/</id>
-    <published>2022-05-02T13:06:18.000Z</published>
-    <updated>2022-05-02T13:59:00.000Z</updated>
-    
-    
-    <summary type="html">This is the second blog to record how to set up personal blog with hexo</summary>
-    
-    
-    
-    <category term="杂项" scheme="https://darenfy.github.io/categories/%E6%9D%82%E9%A1%B9/"/>
-    
-    
-    <category term="blog搭建" scheme="https://darenfy.github.io/tags/blog%E6%90%AD%E5%BB%BA/"/>
     
   </entry>
   

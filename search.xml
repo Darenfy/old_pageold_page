@@ -55,6 +55,18 @@
       </tags>
   </entry>
   <entry>
+    <title>IO_URING系列</title>
+    <url>/2022/10/18/IO-URING%E7%B3%BB%E5%88%97%E5%BC%80%E7%AF%87/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>Kernel</category>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>io_uring</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux Kernel 挖矿之旅</title>
     <url>/2022/05/13/Linux-Kernel-%E6%8C%96%E7%9F%BF%E4%B9%8B%E6%97%85/</url>
     <content><![CDATA[<blockquote>

@@ -20,15 +20,20 @@
     var CONFIG = {"hostname":"darenfy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Emiyaのblog">
-<meta property="og:url" content="https://darenfy.github.io/categories/Kernel/Android/index.html">
+  <meta name="description" content="io_uring 学习笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IO_URING系列">
+<meta property="og:url" content="https://darenfy.github.io/2022/10/18/IO-URING%E7%B3%BB%E5%88%97%E5%BC%80%E7%AF%87/index.html">
 <meta property="og:site_name" content="Emiyaのblog">
+<meta property="og:description" content="io_uring 学习笔记">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-10-18T02:01:23.000Z">
+<meta property="article:modified_time" content="2022-10-18T02:01:23.000Z">
 <meta property="article:author" content="emiya">
+<meta property="article:tag" content="io_uring">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://darenfy.github.io/categories/Kernel/Android/">
+<link rel="canonical" href="https://darenfy.github.io/2022/10/18/IO-URING%E7%B3%BB%E5%88%97%E5%BC%80%E7%AF%87/">
 
 
 <script id="page-configurations">
@@ -36,12 +41,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>分类: Android | Emiyaのblog</title>
+  <title>IO_URING系列 | Emiyaのblog</title>
   
 
 
@@ -183,51 +188,100 @@
         <div class="content-wrap">
           
 
-          <div class="content category">
+          <div class="content post posts-expand">
             
 
+    
   
   
-  
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        <h2 class="collection-header">Android
-          <small>分类</small>
-        </h2>
-      </div>
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://darenfy.github.io/2022/10/18/IO-URING%E7%B3%BB%E5%88%97%E5%BC%80%E7%AF%87/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="emiya">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Emiyaのblog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          IO_URING系列
+        </h1>
+
+        <div class="post-meta">
+          
+            <i class="fa fa-thumb-tack"></i>
+            <font color=7D26CD>置顶</font>
+            <span class="post-meta-divider">|</span>
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-10-18 10:01:23" itemprop="dateCreated datePublished" datetime="2022-10-18T10:01:23+08:00">2022-10-18</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kernel/" itemprop="url" rel="index"><span itemprop="name">Kernel</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kernel/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">io_uring 学习笔记</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <span class="collection-header">2022</span>
+        
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+    
+    
+    
 
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2022-05-17T14:33:51+08:00"
-              content="2022-05-17">
-          05-17
-        </time>
-      </div>
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/io-uring/" rel="tag"># io_uring</a>
+          </div>
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2022/05/17/AndroidKernelExploitationPlayground/" itemprop="url">
-            <span itemprop="name">AndroidKernelExploitationPlayground</span>
-          </a>
-      </div>
+        
 
-    </header>
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/15/corCTF-2021-%E5%88%A9%E7%94%A8-msg-msg-%E5%AE%9E%E7%8E%B0%E4%BB%BB%E6%84%8F%E5%9C%B0%E5%9D%80%E8%AF%BB%E5%86%99/" rel="prev" title="corCTF 2021 利用 msg_msg 实现任意地址读写">
+      <i class="fa fa-chevron-left"></i> corCTF 2021 利用 msg_msg 实现任意地址读写
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2099/06/16/Emiya%E3%81%AEdiary/" rel="next" title="Emiyaのdiary">
+      Emiyaのdiary <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
   </article>
-
-    </div>
-  </div>
   
   
-  
-
   
 
 
